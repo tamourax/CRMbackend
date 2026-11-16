@@ -13,7 +13,7 @@ class AuthController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         if (! Auth::attempt($request->validated())) {
-            throw ValidationException::withMessages(['email' => ['These credentials do not match our records.']]);
+            throw ValidationException::withMessages(['email' => [__('auth.failed')]]);
         }
         $request->session()->regenerate();
 
@@ -31,6 +31,6 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return response()->json(['message' => 'Signed out.']);
+        return response()->json(['message' => __('auth.signed_out')]);
     }
 }
