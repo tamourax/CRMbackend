@@ -24,7 +24,7 @@ class AiServiceBoundariesTest extends TestCase
 
         $context = app(DealToolExecutor::class)->execute($user, 'stage_totals', ['stage' => 'negotiation']);
 
-        $this->assertSame(['stage' => 'negotiation', 'deal_count' => 1, 'total_value' => '10.25'], $context['facts']);
+        $this->assertSame(['stage' => 'negotiation', 'stage_label' => 'Negotiation', 'deal_count' => 1, 'total_value' => '10.25'], $context['facts']);
     }
 
     public function test_executor_validates_arguments_even_when_called_directly(): void

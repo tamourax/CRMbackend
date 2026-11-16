@@ -4,7 +4,7 @@
 
 <p align="center">
   <img alt="Laravel 13" src="https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white" />
-  <img alt="PHP 8.4" src="https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white" />
+  <img alt="PHP 8.5" src="https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white" />
   <img alt="PostgreSQL 17" src="https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white" />
 </p>
 
@@ -28,7 +28,7 @@
 
 | Dependency | Tested version / configuration |
 |---|---|
-| PHP | 8.4, with `pdo_pgsql`, `pdo`, `mbstring`, `openssl`, `curl`, `fileinfo`, `xml`, `ctype`, `tokenizer`, `dom` |
+| PHP | 8.5.12, with `pdo_pgsql`, `pdo`, `mbstring`, `openssl`, `curl`, `fileinfo`, `xml`, `ctype`, `tokenizer`, `dom` |
 | Composer | 2 |
 | PostgreSQL | 17 |
 | Node.js | Only needed for the separate React frontend |
@@ -122,7 +122,13 @@ The backend is a **single Laravel application with service boundaries**, using c
 
 The model has no database connection, arbitrary SQL tool, write capability, or ownership override. Laravel calculates every statistic. AI prose uses server-filled fact placeholders and authorized source references; recommendations still need human review.
 
-Authentication uses **Laravel Sanctum session cookies**, not browser-stored bearer tokens. Login rotates the session ID; logout invalidates it. Every list, detail, report, and AI query is scoped to the authenticated user. Foreign record IDs return `404`.
+Authentication uses **Laravel Sanctum HttpOnly session cookies**. A new successful login revokes previous devices using a server-side SHA-256 session verifier and removes their database sessions. Old or missing verifiers are rejected on the next request. Passwords are hashed by Laravel; session payloads are encrypted with `APP_KEY` and cookie values are encrypted and authenticated. Keep `APP_KEY` stable and outside source control.
+
+`POST /session/refresh` requires an authenticated session and CSRF protection and rotates the session ID. It does not extend the absolute login lifetime (`SESSION_ABSOLUTE_LIFETIME`, default 480 minutes). The idle lifetime defaults to 30 minutes; an active frontend checks session validity every minute. Set `SESSION_LIFETIME=30` in existing local environments to adopt that idle limit. This browser SPA does not issue access/refresh bearer tokens: browser-readable secure-storage libraries cannot protect them against XSS. The session cookie is HttpOnly; the separate readable `XSRF-TOKEN` is only for CSRF verification.
+
+Login limits apply independently per account and per IP. API responses use `no-store`, `nosniff`, frame denial, a restrictive CSP, and a referrer policy. Production forces HttpOnly/Secure cookies and disables debug output. Every list, detail, report, and AI query is scoped to the authenticated user. Foreign record IDs return `404`.
+
+After upgrading, run `php artisan migrate` and sign in again; pre-upgrade authenticated sessions are revoked. Serve frontend and API over HTTPS in production, configure exact CORS/stateful origins, and apply equivalent security headers at the frontend web server. HSTS is emitted for HTTPS API requests. Database disk encryption, database TLS, backups, and secret storage must be configured on the deployment infrastructure; application session encryption does not encrypt all CRM columns.
 
 ## Database relationships
 
@@ -211,7 +217,7 @@ Only `.env.example` is tracked. Never commit actual keys, passwords, `.env.testi
 |---|---|
 | `php artisan serve --host=127.0.0.1 --port=8000` | Start the API |
 | `php artisan migrate --seed` | Create schema and demo data |
-| `php artisan test --compact` | 41 offline tests; 4 live tests skipped by default |
+| `php artisan test --compact` | 49 offline tests; 4 live tests skipped by default |
 | `php vendor/bin/pint --format agent` | Format PHP |
 | `composer validate --strict` | Validate the dependency manifest |
 | `composer audit` | Dependency audit |

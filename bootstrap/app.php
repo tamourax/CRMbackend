@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnforceActiveSession;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetRequestLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
         $middleware->append(SetRequestLocale::class);
+        $middleware->prepend(SecurityHeaders::class);
+        $middleware->web(append: [EnforceActiveSession::class]);
+        $middleware->api(append: [EnforceActiveSession::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
