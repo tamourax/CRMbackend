@@ -24,7 +24,7 @@ class AiAssistant
     {
         $this->ensureConfigured();
         $report = $this->reports->generate($user);
-        $facts = array_filter($report, fn ($value) => is_scalar($value), ARRAY_FILTER_USE_BOTH);
+        $facts = array_filter($report, fn ($value) => is_scalar($value));
         $render = $facts;
         foreach ($report['stages'] as $stage) {
             $render[$stage['stage'].'_count'] = $stage['count'];

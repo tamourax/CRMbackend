@@ -61,7 +61,16 @@ class ContextBuilder
         $public['source_keys'] = array_keys($context['sources']);
         unset($public['sources']);
         foreach ($public['render_values'] as $key => $value) {
-            $public['render_values'][$key] = is_string($value) ? $this->clean($value) : $value;
+            $public['render_values'][$key] = is_string($value) && ! is_numeric($value) && ! preg_match('/^\d{4}-\d{2}-\d{2}/', $value) ? $this->clean($value) : $value;
+        }
+        foreach ($context['records'] ?? [] as $record) {
+            $key = $record['source_key'];
+            if (isset($record['title'])) {
+                $public['render_values'][$key.'_title'] = $record['title'];
+            }
+            if (isset($public['render_values'][$key.'_company'])) {
+                $public['render_values'][$key.'_company'] = $record['company'];
+            }
         }
         return $public;
     }
