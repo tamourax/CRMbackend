@@ -32,12 +32,12 @@ class GeminiProvider implements AiProviderInterface
         ]);
         $calls = array_values(array_filter($parts, fn (array $part) => isset($part['functionCall'])));
         if (count($calls) !== 1) {
-            throw new AiUnavailable('The assistant could not select a single supported query. Please rephrase your question.');
+            throw new AiUnavailable(__('crm.ai.unsupported_query'));
         }
         $call = $calls[0]['functionCall'];
         $arguments = $call['args'] ?? [];
         if (! is_string($call['name'] ?? null) || ! is_array($arguments)) {
-            throw new AiUnavailable('The assistant returned an invalid query. Please try again.');
+            throw new AiUnavailable(__('crm.ai.invalid_provider_query'));
         }
 
         return ['name' => $call['name'], 'arguments' => $arguments];
@@ -60,18 +60,18 @@ class GeminiProvider implements AiProviderInterface
             // Invalid provider JSON must never become an unverified answer.
         }
 
-        throw new AiUnavailable('The AI response could not be verified. Please try again.');
+        throw new AiUnavailable(__('crm.ai.provider_unverified_response'));
     }
 
     private function request(array $payload): array
     {
         if (! $this->isConfigured()) {
-            throw new AiUnavailable('AI is not configured. Add a valid API key on the backend to enable live answers.');
+            throw new AiUnavailable(__('crm.ai.not_configured'));
         }
         $this->deadline ??= microtime(true) + 55;
         $remaining = $this->deadline - microtime(true);
         if ($remaining < 1) {
-            throw new AiUnavailable('The AI request exceeded its time budget. Please try again.');
+            throw new AiUnavailable(__('crm.ai.request_timeout'));
         }
         try {
             $response = Http::withHeaders(['x-goog-api-key' => config('ai.gemini_api_key')])->acceptJson()
@@ -96,19 +96,19 @@ class GeminiProvider implements AiProviderInterface
                     ],
                 ]);
         } catch (ConnectionException) {
-            throw new AiUnavailable('The AI provider is temporarily unreachable. Please try again.');
+            throw new AiUnavailable(__('crm.ai.provider_unavailable'));
         }
         if (! $response->successful()) {
             Log::warning('AI provider request failed.', ['provider' => 'gemini', 'status' => $response->status()]);
             if ($response->status() === 429) {
-                throw new AiUnavailable('The AI provider quota or rate limit has been reached. Check provider usage or try again later.');
+                throw new AiUnavailable(__('crm.ai.provider_quota'));
             }
-            throw new AiUnavailable('The AI provider could not complete the request. Check configuration or try again later.');
+            throw new AiUnavailable(__('crm.ai.provider_failed'));
         }
         $data = $response->json();
         $candidate = is_array($data) ? ($data['candidates'][0] ?? null) : null;
         if (! is_array($candidate) || ($candidate['finishReason'] ?? null) !== 'STOP' || ! is_array($candidate['content']['parts'] ?? null)) {
-            throw new AiUnavailable('The AI response was incomplete or blocked. Please try a more specific question.');
+            throw new AiUnavailable(__('crm.ai.response_incomplete'));
         }
 
         return $candidate['content']['parts'];

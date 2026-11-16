@@ -17,11 +17,19 @@ class Deal extends Model
 
     public const OPEN_STAGES = ['lead', 'qualified', 'proposal', 'negotiation'];
 
-    protected $fillable = ['customer_id', 'title', 'value', 'stage', 'expected_close_date', 'description', 'lost_reason'];
+    protected $fillable = ['customer_id', 'title', 'value', 'stage', 'expected_close_date', 'description', 'lost_reason', 'translations'];
 
     protected function casts(): array
     {
-        return ['value' => 'decimal:2', 'expected_close_date' => 'date:Y-m-d'];
+        return ['value' => 'decimal:2', 'expected_close_date' => 'date:Y-m-d', 'translations' => 'array'];
+    }
+
+    public function localized(string $attribute): mixed
+    {
+        $translations = $this->getAttribute('translations') ?? [];
+        $localeValues = $translations[app()->getLocale()] ?? [];
+
+        return array_key_exists($attribute, $localeValues) ? $localeValues[$attribute] : $this->getAttribute($attribute);
     }
 
     public function customer(): BelongsTo

@@ -27,12 +27,12 @@ class ContextBuilder
         $sensitive = [$deal->customer->name, $deal->customer->email, $deal->customer->phone];
 
         return [
-            'source_key' => 'deal_'.$deal->id, 'title' => $this->clean($deal->title, $sensitive),
-            'company' => $this->clean($deal->customer->company, $sensitive),
-            'value' => $deal->value, 'stage' => $deal->stage,
+            'source_key' => 'deal_'.$deal->id, 'title' => $this->clean($deal->localized('title'), $sensitive),
+            'company' => $this->clean($deal->customer->localized('company'), $sensitive),
+            'value' => $deal->value, 'stage' => $deal->stage, 'stage_label' => __('crm.stage.'.$deal->stage),
             'expected_close_date' => $deal->expected_close_date?->toDateString(),
-            'description' => $this->clean($deal->description, $sensitive),
-            'lost_reason' => $this->clean($deal->lost_reason, $sensitive),
+            'description' => $this->clean($deal->localized('description'), $sensitive),
+            'lost_reason' => $this->clean($deal->localized('lost_reason'), $sensitive),
         ];
     }
 
@@ -41,26 +41,27 @@ class ContextBuilder
         $base = $customer->deals();
         $records = (clone $base)->with('customer')->orderByDesc('value')->orderBy('id')->limit(20)->get();
         $facts = ['total_deals' => (clone $base)->count(), 'open_deals' => (clone $base)->open()->count(), 'pipeline_value' => CrmQueries::decimal((clone $base)->open()->sum('value')), 'won_value' => CrmQueries::decimal((clone $base)->where('stage', 'won')->sum('value'))];
-        $sources = ['customer_'.$customer->id => ['type' => 'customer', 'id' => $customer->id, 'label' => $customer->company]];
+        $sources = ['customer_'.$customer->id => ['type' => 'customer', 'id' => $customer->id, 'label' => $customer->localized('company')]];
         $render = $facts;
         foreach ($records as $deal) {
-            $sources['deal_'.$deal->id] = ['type' => 'deal', 'id' => $deal->id, 'label' => $deal->title];
-            $render['deal_'.$deal->id.'_title'] = $deal->title;
+            $sources['deal_'.$deal->id] = ['type' => 'deal', 'id' => $deal->id, 'label' => $deal->localized('title')];
+            $render['deal_'.$deal->id.'_title'] = $deal->localized('title');
             $render['deal_'.$deal->id.'_value'] = $deal->value;
-            $render['deal_'.$deal->id.'_close_date'] = $deal->expected_close_date?->toDateString() ?? 'Not scheduled';
+            $render['deal_'.$deal->id.'_close_date'] = $deal->expected_close_date?->toDateString() ?? __('crm.ai.unscheduled_date');
         }
 
         return [
             'facts' => $facts, 'sources' => $sources, 'render_values' => $render,
             'records' => $records->map(fn (Deal $deal) => $this->deal($deal))->all(),
             'customer' => [
-                'company' => $this->clean($customer->company, [$customer->name]),
-                'industry' => $customer->industry,
-                'city' => $this->clean($customer->city),
+                'company' => $this->clean($customer->localized('company'), [$customer->localized('name')]),
+                'industry' => $customer->localized('industry'),
+                'city' => $this->clean($customer->localized('city')),
                 'status' => $customer->status,
-                'notes' => $this->clean($customer->notes, [$customer->name, $customer->email, $customer->phone]),
+                'status_label' => __('crm.status.'.$customer->status),
+                'notes' => $this->clean($customer->localized('notes'), [$customer->localized('name'), $customer->email, $customer->phone]),
             ],
-            'limitations' => $facts['total_deals'] > 20 ? ['Only the twenty highest-value deals are included in the narrative; aggregates cover all associated deals.'] : [],
+            'limitations' => $facts['total_deals'] > 20 ? [__('crm.ai.customer_deal_limit', ['limit' => 20])] : [],
         ];
     }
 
@@ -73,7 +74,7 @@ class ContextBuilder
             $render[$stage['stage'].'_value'] = $stage['value'];
         }
         $customers = [];
-        $sources = ['sales_report' => ['type' => 'aggregate', 'label' => 'Sales report · all your deals']];
+        $sources = ['sales_report' => ['type' => 'aggregate', 'label' => __('crm.ai.sales_report_source')]];
         foreach ($report['top_customers'] as $customer) {
             $key = 'customer_'.$customer['id'];
             $customers[] = ['source_key' => $key, 'company' => $this->clean($customer['company'], [$customer['name']]), 'deal_count' => $customer['deal_count'], 'total_value' => $customer['total_value']];
@@ -85,7 +86,7 @@ class ContextBuilder
 
         return [
             'facts' => $facts, 'render_values' => $render, 'stages' => $report['stages'], 'top_customers' => $customers,
-            'sources' => $sources, 'limitations' => ['No historical stage changes or actual closing dates are stored; growth trends and realized revenue cannot be determined.'],
+            'sources' => $sources, 'limitations' => [__('crm.ai.report_snapshot_limit')],
         ];
     }
 

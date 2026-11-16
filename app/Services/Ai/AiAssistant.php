@@ -14,14 +14,14 @@ class AiAssistant
     {
         $this->ensureConfigured();
 
-        return $this->write('Summarize this customer in five sections: Customer overview, Relationship status, Associated deals, Potential opportunities, Notes and risks. Mention missing information explicitly.', $this->contexts->customer($customer));
+        return $this->write(__('crm.ai.customer_task'), $this->contexts->customer($customer));
     }
 
     public function report(User $user): array
     {
         $this->ensureConfigured();
 
-        return $this->write('Summarize sales performance, stage concentration, potential risks, and suggested next steps. This is a current snapshot, not a historical trend. Expected close dates are not actual revenue.', $this->contexts->salesReport($this->reports->generate($user)));
+        return $this->write(__('crm.ai.report_task'), $this->contexts->salesReport($this->reports->generate($user)));
     }
 
     public function ask(User $user, string $question): array
@@ -56,7 +56,7 @@ class AiAssistant
     private function ensureConfigured(): void
     {
         if (! $this->provider->isConfigured()) {
-            throw new AiUnavailable('AI is not configured. Add a valid API key on the backend to enable live answers.');
+            throw new AiUnavailable(__('crm.ai.not_configured'));
         }
     }
 }

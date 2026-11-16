@@ -49,10 +49,10 @@ class DealToolCatalog
             default => null,
         };
         if ($rules === null || ! is_array($arguments) || array_diff(array_keys($arguments), array_keys($rules)) || Validator::make($arguments, $rules)->fails()) {
-            throw new AiUnavailable('The assistant selected an invalid query. Please rephrase your question.');
+            throw new AiUnavailable(__('crm.ai.invalid_query'));
         }
         if (! empty($arguments['close_from']) && ! empty($arguments['close_to']) && $arguments['close_to'] < $arguments['close_from']) {
-            throw new AiUnavailable('The assistant selected an invalid date range. Please rephrase your question.');
+            throw new AiUnavailable(__('crm.ai.invalid_date_range'));
         }
     }
 }

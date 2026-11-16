@@ -19,7 +19,7 @@ class DealToolExecutor
             'stage_totals' => $this->stageTotals($user, $arguments['stage']),
             'top_customers' => $this->customerRanking($user, $arguments),
             'lost_deal_reasons' => $this->lossReasons($user),
-            default => throw new AiUnavailable('This query cannot retrieve database records.'),
+            default => throw new AiUnavailable(__('crm.ai.query_unavailable')),
         };
     }
 
@@ -36,9 +36,10 @@ class DealToolExecutor
     private function stageTotals(User $user, string $stage): array
     {
         $query = $this->queries->deals($user, ['stage' => $stage]);
-        $facts = ['stage' => $stage, 'deal_count' => (clone $query)->count(), 'total_value' => CrmQueries::decimal((clone $query)->sum('value'))];
+        $stageLabel = __('crm.stage.'.$stage);
+        $facts = ['stage' => $stage, 'stage_label' => $stageLabel, 'deal_count' => (clone $query)->count(), 'total_value' => CrmQueries::decimal((clone $query)->sum('value'))];
 
-        return ['facts' => $facts, 'render_values' => $facts, 'sources' => ['stage_total' => ['type' => 'aggregate', 'label' => ucfirst($stage).' · all matching deals']], 'limitations' => []];
+        return ['facts' => $facts, 'render_values' => $facts, 'sources' => ['stage_total' => ['type' => 'aggregate', 'label' => __('crm.ai.stage_total_source', ['stage' => $stageLabel])]], 'limitations' => []];
     }
 
     private function customerRanking(User $user, array $args): array
@@ -57,7 +58,7 @@ class DealToolExecutor
             $records[] = ['source_key' => $key, 'company' => $this->contexts->clean($customer['company'], [$customer['name']]), 'deal_count' => $customer['deal_count'], 'total_value' => $customer['total_value']];
         }
 
-        return ['facts' => $facts, 'render_values' => $render, 'records' => $records, 'sources' => $sources, 'limitations' => ['This is a limited ranking, not a list of all customers.']];
+        return ['facts' => $facts, 'render_values' => $render, 'records' => $records, 'sources' => $sources, 'limitations' => [__('crm.ai.customer_ranking_limitation')]];
     }
 
     private function lossReasons(User $user): array
@@ -72,18 +73,18 @@ class DealToolExecutor
 
     private function recordsContext(array $deals, array $facts, bool $truncated): array
     {
-        $sources = ['query_result' => ['type' => 'aggregate', 'label' => 'Authorized CRM query · all matching records']];
+        $sources = ['query_result' => ['type' => 'aggregate', 'label' => __('crm.ai.authorized_query_source')]];
         $render = $facts;
         $records = [];
         foreach ($deals as $deal) {
             $key = 'deal_'.$deal->id;
-            $sources[$key] = ['type' => 'deal', 'id' => $deal->id, 'label' => $deal->title];
-            $render[$key.'_title'] = $deal->title;
+            $sources[$key] = ['type' => 'deal', 'id' => $deal->id, 'label' => $deal->localized('title')];
+            $render[$key.'_title'] = $deal->localized('title');
             $render[$key.'_value'] = $deal->value;
-            $render[$key.'_close_date'] = $deal->expected_close_date?->toDateString() ?? 'Not scheduled';
+            $render[$key.'_close_date'] = $deal->expected_close_date?->toDateString() ?? __('crm.ai.unscheduled_date');
             $records[] = $this->contexts->deal($deal);
         }
 
-        return ['facts' => $facts, 'render_values' => $render, 'records' => $records, 'sources' => $sources, 'limitations' => $truncated ? ['Record details are limited to the highest-ranked results; aggregate facts cover all matching records.'] : []];
+        return ['facts' => $facts, 'render_values' => $render, 'records' => $records, 'sources' => $sources, 'limitations' => $truncated ? [__('crm.ai.limited_records')] : []];
     }
 }

@@ -14,7 +14,11 @@ class CrmQueries
         $query = Customer::query()->ownedBy($user);
         if (! empty($filters['search'])) {
             $search = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $filters['search']).'%';
-            $query->where(fn (Builder $q) => $q->where('name', 'ilike', $search)->orWhere('company', 'ilike', $search));
+            $query->where(fn (Builder $q) => $q
+                ->where('name', 'ilike', $search)
+                ->orWhere('company', 'ilike', $search)
+                ->orWhere('translations->ar->name', 'ilike', $search)
+                ->orWhere('translations->ar->company', 'ilike', $search));
         }
         if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -37,7 +41,7 @@ class CrmQueries
         }
         if (! empty($filters['search'])) {
             $search = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $filters['search']).'%';
-            $query->where('title', 'ilike', $search);
+            $query->where(fn (Builder $q) => $q->where('title', 'ilike', $search)->orWhere('translations->ar->title', 'ilike', $search));
         }
         if (($filters['closing'] ?? null) === 'this_month') {
             $query->whereBetween('expected_close_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]);

@@ -22,7 +22,9 @@ class AuthController extends Controller
 
     public function user(Request $request): JsonResponse
     {
-        return response()->json(['data' => $request->user()->only('id', 'name', 'email')]);
+        $user = $request->user();
+
+        return response()->json(['data' => ['id' => $user->id, 'name' => $user->localized('name'), 'email' => $user->email]]);
     }
 
     public function logout(Request $request): JsonResponse

@@ -29,7 +29,7 @@ class SalesReportService
         $query->orderByDesc($metric === 'active_count' ? 'deals_count' : 'deals_sum_value')->orderBy('id');
 
         return $query->limit($limit)->get()->map(fn ($customer) => [
-            'id' => $customer->id, 'company' => $customer->company, 'name' => $customer->name,
+            'id' => $customer->id, 'company' => $customer->localized('company'), 'name' => $customer->localized('name'),
             'deal_count' => $customer->deals_count, 'total_value' => CrmQueries::decimal($customer->deals_sum_value ?? 0),
         ])->all();
     }
@@ -39,7 +39,7 @@ class SalesReportService
         $base = $this->queries->deals($user);
         $grouped = (clone $base)->selectRaw('stage, COUNT(*) AS deal_count, SUM(value) AS total_value')->groupBy('stage')->get()->keyBy('stage');
         $stages = array_map(fn (string $stage) => [
-            'stage' => $stage, 'count' => (int) ($grouped->get($stage)?->deal_count ?? 0),
+            'stage' => $stage, 'label' => __('crm.stage.'.$stage), 'count' => (int) ($grouped->get($stage)?->deal_count ?? 0),
             'value' => CrmQueries::decimal($grouped->get($stage)?->total_value ?? 0),
         ], Deal::STAGES);
         $won = (clone $base)->where('stage', 'won');

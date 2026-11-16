@@ -23,15 +23,15 @@ class OpenAiProvider implements AiProviderInterface
         ]);
         $calls = array_values(array_filter($response['output'] ?? [], fn ($item) => ($item['type'] ?? null) === 'function_call'));
         if (count($calls) !== 1) {
-            throw new AiUnavailable('The assistant could not select a supported query. Please rephrase your question.');
+            throw new AiUnavailable(__('crm.ai.unsupported_query'));
         }
         try {
             $arguments = json_decode($calls[0]['arguments'] ?? '', true, 32, JSON_THROW_ON_ERROR);
         } catch (JsonException) {
-            throw new AiUnavailable('The assistant returned an invalid query. Please try again.');
+            throw new AiUnavailable(__('crm.ai.invalid_provider_query'));
         }
         if (! is_array($arguments) || ! is_string($calls[0]['name'] ?? null)) {
-            throw new AiUnavailable('The assistant returned an invalid query. Please try again.');
+            throw new AiUnavailable(__('crm.ai.invalid_provider_query'));
         }
 
         return ['name' => $calls[0]['name'], 'arguments' => $arguments];
@@ -61,13 +61,13 @@ class OpenAiProvider implements AiProviderInterface
                 }
             }
         }
-        throw new AiUnavailable('The AI response could not be verified. Please try again.');
+        throw new AiUnavailable(__('crm.ai.provider_unverified_response'));
     }
 
     private function request(array $payload): array
     {
         if (! $this->isConfigured()) {
-            throw new AiUnavailable('AI is not configured. Add a valid API key on the backend to enable live answers.');
+            throw new AiUnavailable(__('crm.ai.not_configured'));
         }
         try {
             $response = Http::withToken(config('ai.api_key'))->acceptJson()->withOptions(['verify' => config('ai.ca_bundle') ?: true])->connectTimeout(5)->timeout(config('ai.timeout'))->post('https://api.openai.com/v1/responses', [
@@ -75,15 +75,15 @@ class OpenAiProvider implements AiProviderInterface
                 'reasoning' => ['effort' => 'low'], 'max_output_tokens' => config('ai.max_output_tokens'), ...$payload,
             ]);
         } catch (ConnectionException) {
-            throw new AiUnavailable('The AI provider is temporarily unreachable. Please try again.');
+            throw new AiUnavailable(__('crm.ai.provider_unavailable'));
         }
         if (! $response->successful()) {
             Log::warning('AI provider request failed.', ['status' => $response->status()]);
-            throw new AiUnavailable('The AI provider could not complete the request. Check configuration or try again later.');
+            throw new AiUnavailable(__('crm.ai.provider_failed'));
         }
         $data = $response->json();
         if (! is_array($data) || ($data['status'] ?? null) !== 'completed') {
-            throw new AiUnavailable('The AI response was incomplete. Please try a more specific question.');
+            throw new AiUnavailable(__('crm.ai.response_incomplete'));
         }
 
         return $data;

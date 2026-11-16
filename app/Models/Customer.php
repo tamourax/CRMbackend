@@ -14,7 +14,20 @@ class Customer extends Model
     /** @use HasFactory<CustomerFactory> */
     use HasFactory;
 
-    protected $fillable = ['user_id', 'name', 'email', 'phone', 'company', 'industry', 'city', 'status', 'notes'];
+    protected $fillable = ['user_id', 'name', 'email', 'phone', 'company', 'industry', 'city', 'status', 'notes', 'translations'];
+
+    protected function casts(): array
+    {
+        return ['translations' => 'array'];
+    }
+
+    public function localized(string $attribute): mixed
+    {
+        $translations = $this->getAttribute('translations') ?? [];
+        $localeValues = $translations[app()->getLocale()] ?? [];
+
+        return array_key_exists($attribute, $localeValues) ? $localeValues[$attribute] : $this->getAttribute($attribute);
+    }
 
     public function user(): BelongsTo
     {

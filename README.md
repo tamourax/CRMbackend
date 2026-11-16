@@ -90,7 +90,7 @@ Use **localhost** consistently in both browser URLs. Mixing it with `127.0.0.1` 
 | Ahmed Tamer | `ahmed@7bahmedtamer.example` | `OrbitDemo!2026` |
 | Nour Hassan | `nour@7bahmedtamer.example` | `OrbitDemo!2026` |
 
-These are public, fictional seed credentials, not production credentials. Each account owns **10 Egyptian customer records and 30 deals**, with Cairo, Giza, Alexandria, Hurghada, Ismailia, and 6th of October City locations. Phone numbers use Egypt's `+20` country code and customer emails use reserved `.example` domains. Monetary values are Egyptian pounds (EGP). The seed covers all six stages, customers without deals, missing notes/loss reasons, and past/current/future closing dates. It is idempotent and restricted to local/testing environments. Re-seeding refreshes dates relative to the current Cairo calendar.
+These are public, fictional seed credentials, not production credentials. Each account owns **10 Egyptian customer records and 30 deals**, with Cairo, Giza, Alexandria, Hurghada, Ismailia, and 6th of October City locations. Phone numbers use Egypt's `+20` country code and customer emails use reserved `.example` domains. Monetary values are Egyptian pounds (EGP). Customer, deal, and demo user text has English and Arabic variants; the API selects a language from the request's `Accept-Language` header and falls back to the canonical English text. The seed covers all six stages, customers without deals, missing notes/loss reasons, and past/current/future closing dates. It is idempotent and restricted to local/testing environments. Re-seeding refreshes dates relative to the current Cairo calendar.
 
 ## Architecture
 
