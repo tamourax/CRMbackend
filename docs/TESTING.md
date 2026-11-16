@@ -24,4 +24,4 @@ Source allowlists and numeric placeholders reduce errors, but cannot prove natur
 
 ## CI
 
-Backend CI provisions PostgreSQL 17, validates Composer, checks formatting, runs tests, and audits dependencies. Frontend CI uses locked dependencies, tests, production build, and audit. Local browser integration is documented because a combined workflow over two private repositories would need an additional cross-repository credential.
+Backend CI provisions PostgreSQL 17, validates Composer, checks formatting, runs tests, and audits dependencies. Frontend CI uses locked dependencies, tests, production build, and audit. Browser tests currently run locally against both checkouts; the individual repository workflows do not run the combined browser suite.
