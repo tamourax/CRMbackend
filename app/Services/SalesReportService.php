@@ -54,7 +54,7 @@ class SalesReportService
             'closing_this_month_count' => (clone $closing)->count(), 'closing_this_month_value' => CrmQueries::decimal((clone $closing)->sum('value')),
             'overdue_count' => $this->queries->deals($user, ['closing' => 'overdue'])->count(),
             'stages' => $stages, 'top_customers' => $this->topCustomers($user),
-            'as_of' => now()->toIso8601String(), 'timezone' => config('app.timezone'), 'currency' => 'USD',
+            'as_of' => now()->toIso8601String(), 'timezone' => config('app.timezone'), 'currency' => 'EGP',
         ];
     }
 }

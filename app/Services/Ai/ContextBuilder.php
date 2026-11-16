@@ -53,7 +53,13 @@ class ContextBuilder
         return [
             'facts' => $facts, 'sources' => $sources, 'render_values' => $render,
             'records' => $records->map(fn (Deal $deal) => $this->deal($deal))->all(),
-            'customer' => ['company' => $this->clean($customer->company, [$customer->name]), 'industry' => $customer->industry, 'status' => $customer->status, 'notes' => $this->clean($customer->notes, [$customer->name, $customer->email, $customer->phone])],
+            'customer' => [
+                'company' => $this->clean($customer->company, [$customer->name]),
+                'industry' => $customer->industry,
+                'city' => $this->clean($customer->city),
+                'status' => $customer->status,
+                'notes' => $this->clean($customer->notes, [$customer->name, $customer->email, $customer->phone]),
+            ],
             'limitations' => $facts['total_deals'] > 20 ? ['Only the twenty highest-value deals are included in the narrative; aggregates cover all associated deals.'] : [],
         ];
     }

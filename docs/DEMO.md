@@ -3,12 +3,12 @@
 The [frontend repository](https://github.com/tamourax/CRMfrontend) contains `docs/demo.webm`, screenshots, and `npm run demo`. The recorder uses real PostgreSQL data, detects configured AI, and captures actual generated results or visible provider errors. Without a key it shows the missing configuration state. There are no simulated AI answers.
 
 1. Sign in as Alex. Explain that SQL-backed services calculate the cards, pipeline excludes Won/Lost, and the report is a current snapshot.
-2. Customers → Atlas Industries: show contact/company details, notes, associated deals, and a deal's customer link.
+2. Customers → NileBridge Technologies: show the Egyptian contact, Cairo location, company details, notes, associated deals, and a deal's customer link.
 3. Filter Deals by Negotiation and sort by value. Show close-date filters and pagination.
 4. Generate a customer summary. Without a key, show the explicit unavailable response. With a key, review overview, relationship, deals, opportunities, and risks, with source links.
 5. Ask the five questions below. Compare facts and citations with the underlying records.
 6. Generate a sales narrative. Explain why historical growth cannot be inferred.
-7. Sign in as Sarah in an isolated browser. Alex's IDs return `404`; her lists/reports include only her records.
+7. Sign in as Nour in an isolated browser. Ahmed's IDs return `404`; her lists/reports include only her records.
 8. Show tests. Explain the browser-discovered logout cache issue and its regression test.
 
 | Live question | Expected tool |

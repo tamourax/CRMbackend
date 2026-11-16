@@ -32,7 +32,7 @@ class CrmController extends Controller
 
     public function deals(ListDealsRequest $request): AnonymousResourceCollection
     {
-        $query = $this->queries->deals($request->user(), $request->validated())->with('customer:id,name,company');
+        $query = $this->queries->deals($request->user(), $request->validated())->with('customer:id,name,company,industry,city');
 
         return DealResource::collection($this->queries->sortDeals($query, $request->input('sort'))->paginate($request->integer('per_page', 10))->withQueryString());
     }

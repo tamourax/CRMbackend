@@ -42,7 +42,7 @@ class AiAssistantTest extends TestCase
         Deal::factory()->for($this->customer)->create(['stage' => 'negotiation', 'value' => '0.44']);
         Deal::factory()->create(['stage' => 'negotiation', 'value' => '99999.00']);
         $this->provider->response = ['sections' => [['title' => 'Negotiation', 'content' => 'There are {{deal_count}} deals totaling {{total_value}}.']], 'source_keys' => ['stage_total']];
-        $this->postJson('/api/assistant/messages', ['question' => 'What is the total value in Negotiation?'])->assertOk()->assertJsonPath('data.facts.total_value', '1235.00')->assertJsonPath('data.sections.0.content', 'There are 2 deals totaling USD 1235.00.');
+        $this->postJson('/api/assistant/messages', ['question' => 'What is the total value in Negotiation?'])->assertOk()->assertJsonPath('data.facts.total_value', '1235.00')->assertJsonPath('data.sections.0.content', 'There are 2 deals totaling EGP 1235.00.');
     }
 
     public function test_highest_open_deals_are_sorted_scoped_and_limited_with_full_aggregates(): void

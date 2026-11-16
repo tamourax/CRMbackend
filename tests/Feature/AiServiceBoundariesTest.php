@@ -43,7 +43,7 @@ class AiServiceBoundariesTest extends TestCase
 
         $response = app(GroundedResponseFormatter::class)->format($result, $context);
 
-        $this->assertSame('USD 23456789012.34 across 3 deals.', $response['sections'][0]['content']);
+        $this->assertSame('EGP 23456789012.34 across 3 deals.', $response['sections'][0]['content']);
         $this->assertSame($facts, $response['facts']);
         $this->assertSame(array_values($sources), $response['sources']);
         $this->assertSame($context['limitations'], $response['limitations']);

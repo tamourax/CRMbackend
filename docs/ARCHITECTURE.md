@@ -40,6 +40,7 @@ erDiagram
         varchar phone
         varchar company
         varchar industry
+        varchar city "nullable"
         varchar status
         text notes
     }
@@ -55,7 +56,7 @@ erDiagram
     }
 ```
 
-Domain tables also have timestamps. Users own customers and reach deals through those customers. Deals do not duplicate owner IDs, avoiding contradictory ownership. Detail lookups are scoped before policies execute. Foreign keys restrict deletion; check constraints enforce valid statuses/stages and nonnegative `NUMERIC(14,2)`. Indexed ownership, stage, and close-date columns support lists and assistant queries. Single currency: USD. Database sums and JSON decimal strings preserve exact money values; frontend formatting is presentation only.
+Domain tables also have timestamps. Users own customers and reach deals through those customers. Deals do not duplicate owner IDs, avoiding contradictory ownership. Detail lookups are scoped before policies execute. Foreign keys restrict deletion; check constraints enforce valid statuses/stages and nonnegative `NUMERIC(14,2)`. Indexed ownership, stage, and close-date columns support lists and assistant queries. Customer city is stored separately from company and industry for accurate local location display. Single currency: EGP. Database sums and JSON decimal strings preserve exact money values; frontend formatting is presentation only.
 
 ## Metric definitions
 

@@ -87,10 +87,10 @@ Use **localhost** consistently in both browser URLs. Mixing it with `127.0.0.1` 
 
 | Workspace | Username / email | Demo password |
 |---|---|---|
-| Alex Morgan | `alex@orbit.example` | `OrbitDemo!2026` |
-| Sarah Chen | `sarah@orbit.example` | `OrbitDemo!2026` |
+| Ahmed Tamer | `ahmed@7bahmedtamer.example` | `OrbitDemo!2026` |
+| Nour Hassan | `nour@7bahmedtamer.example` | `OrbitDemo!2026` |
 
-These are public, fictional seed credentials, not production credentials. Each account owns **10 customers and 30 deals**. The seed covers all six stages, customers without deals, missing notes/loss reasons, and past/current/future closing dates. It is idempotent and restricted to local/testing environments. Re-seeding refreshes dates relative to the current Cairo calendar.
+These are public, fictional seed credentials, not production credentials. Each account owns **10 Egyptian customer records and 30 deals**, with Cairo, Giza, Alexandria, Hurghada, Ismailia, and 6th of October City locations. Phone numbers use Egypt's `+20` country code and customer emails use reserved `.example` domains. Monetary values are Egyptian pounds (EGP). The seed covers all six stages, customers without deals, missing notes/loss reasons, and past/current/future closing dates. It is idempotent and restricted to local/testing environments. Re-seeding refreshes dates relative to the current Cairo calendar.
 
 ## Architecture
 
@@ -135,7 +135,7 @@ erDiagram
 - `customers.user_id` references `users.id`; `deals.customer_id` references `customers.id`.
 - Deal ownership is inherited from its customer, avoiding duplicate owner fields.
 - Foreign keys restrict deletion; check constraints enforce supported stages/statuses and nonnegative values.
-- Values use PostgreSQL `NUMERIC(14,2)` and decimal strings in JSON. Currency is USD.
+- Values use PostgreSQL `NUMERIC(14,2)` and decimal strings in JSON. Currency is EGP.
 - Open pipeline includes **Lead, Qualified, Proposal, Negotiation**; Won and Lost are separate.
 - Expected dates use the **Africa/Cairo** calendar. A current snapshot cannot establish historical growth or realized revenue.
 

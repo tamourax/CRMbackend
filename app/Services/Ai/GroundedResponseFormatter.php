@@ -27,7 +27,7 @@ class GroundedResponseFormatter
             $content = preg_replace_callback('/\{\{([a-zA-Z0-9_]+)\}\}/', function (array $match) use ($context): string {
                 $value = (string) $context['render_values'][$match[1]];
 
-                return str_contains($match[1], 'value') && is_numeric($value) ? 'USD '.$value : $value;
+                return str_contains($match[1], 'value') && is_numeric($value) ? 'EGP '.$value : $value;
             }, $content);
             $sections[] = ['title' => $section['title'], 'content' => $content];
         }
