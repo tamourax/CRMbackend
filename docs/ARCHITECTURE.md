@@ -16,6 +16,8 @@ flowchart LR
 
 Separate repositories meet delivery requirements. Controllers coordinate requests, Form Requests validate input, Eloquent ownership scopes and policies enforce authorization, business services calculate reports, Resources shape outbound records, and `AiProviderInterface` isolates external calls. Direct Eloquent queries keep the small application understandable without a redundant repository layer.
 
+The AI service boundaries are explicit: `AiAssistant` coordinates the workflow; `DealToolCatalog` defines and validates tools; `DealToolExecutor` revalidates and executes them for an authenticated user; `ContextBuilder` prepares customer/report contexts; and `GroundedResponseFormatter` verifies model output before inserting server facts. Providers own only external transport. See [the refactor record](REFACTOR.md) for the before/after mapping and compatibility guarantees.
+
 Sanctum uses session cookies and CSRF. React never stores bearer tokens in localStorage. Login regenerates the session ID. Logout invalidates the session, rotates CSRF, cancels queries, and removes private frontend cache entries. CORS permits one configured origin with credentials. Production SPA/API hosts must share the same parent domain or use a same-origin proxy.
 
 ## ERD
