@@ -39,17 +39,23 @@ These are intentionally public, fictional seed credentials, never production cre
 | `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | PostgreSQL connection |
 | `SESSION_DRIVER`, `SESSION_ENCRYPT`, `SESSION_DOMAIN`, `SESSION_SECURE_COOKIE`, `SESSION_SAME_SITE` | Encrypted server-side sessions and cookies |
 | `CACHE_STORE` | Database during local use, array during tests |
-| `AI_PROVIDER`, `OPENAI_API_KEY`, `OPENAI_MODEL` | AI adapter, server-side key, model |
+| `AI_PROVIDER`, `OPENAI_API_KEY`, `OPENAI_MODEL` | OpenAI configuration |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | Gemini configuration |
+| `AI_CA_BUNDLE` | Optional trusted CA PEM file for local PHP HTTPS |
 
 Only `.env.example` is tracked. Never commit actual keys, passwords, `.env.testing`, or session data. Production needs HTTPS, secure cookies, private PostgreSQL networking, strong authentication, individual credentials, and removal of demo users.
 
 ## AI configuration and delivery status
 
-Set `AI_PROVIDER=openai`, a valid `OPENAI_API_KEY`, and `OPENAI_MODEL=gpt-5.4-mini` in `.env`; run `php artisan config:clear`. The adapter uses Laravel HTTP with OpenAI Responses, strict tool schemas, structured summaries, `store=false`, and bounded timeouts.
+For Gemini, set `AI_PROVIDER=gemini`, `GEMINI_API_KEY`, and `GEMINI_MODEL=gemini-3.5-flash-lite` in backend `.env`. OpenAI remains supported through `AI_PROVIDER=openai`, `OPENAI_API_KEY`, and `OPENAI_MODEL=gpt-5.4-mini`. Run `php artisan config:clear` and restart the backend server after environment changes. Keep keys out of the frontend and Git.
 
-**No live API key was supplied. Live AI behavior has not been verified.** Missing configuration returns an honest `503`; the frontend displays it. Fake providers exist only in tests and are never selected by application configuration. Mocked HTTP contract tests do not prove live model quality or account/model availability.
+On Windows PHP installations missing trusted CA configuration, set `AI_CA_BUNDLE` to an existing trusted PEM file. TLS verification remains enabled; never use verify=false. The assessment workstation uses Laragon's existing CA bundle.
 
-After adding a key, run the five questions in [the demo guide](docs/DEMO.md), checking numbers and source links. Contact fields are omitted; notes/descriptions are minimized and redacted on a best-effort basis. Company and business information can still be sent externally. Review provider/privacy settings before real customer use. `store=false` is not a guarantee of zero provider retention.
+A Gemini key was supplied after the initial delivery and is stored only in the ignored local `.env`. Gemini uses forced read-only function selection and structured summaries with server-validated fact placeholders; Laravel inserts the authoritative values and validates sources. OpenAI uses Responses with `store=false`. Fake providers remain test-only. Missing configuration and provider failures return honest `503` messages.
+
+Gemini retries a received transient HTTP 500/502/503/504 once, never quota/authentication failures or network timeouts. The two-phase request shares a 55-second overall budget with a 25-second per-attempt limit. External model overload can still exhaust the bounded retry.
+
+Run the five questions in [the demo guide](docs/DEMO.md), checking numbers and source links. Contact fields are omitted; notes/descriptions are minimized and redacted on a best-effort basis. Company and business information can still be sent externally. Review provider/privacy settings before real customer use. Stateless Gemini requests and OpenAI's `store=false` do not guarantee zero provider retention.
 
 ## Tests
 

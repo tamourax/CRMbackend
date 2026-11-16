@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\Ai\AiProviderInterface;
+use App\Services\Ai\GeminiProvider;
 use App\Services\Ai\OpenAiProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(AiProviderInterface::class, OpenAiProvider::class);
+        $this->app->bind(AiProviderInterface::class, fn ($app) => $app->make(config('ai.provider') === 'gemini' ? GeminiProvider::class : OpenAiProvider::class));
     }
 
     /**

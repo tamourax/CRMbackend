@@ -38,6 +38,8 @@ class AiAssistant
             $customers[] = ['source_key' => $key, 'company' => $this->contexts->clean($customer['company'], [$customer['name']]), 'deal_count' => $customer['deal_count'], 'total_value' => $customer['total_value']];
             $sources[$key] = ['type' => 'customer', 'id' => $customer['id'], 'label' => $customer['company']];
             $render[$key.'_value'] = $customer['total_value'];
+            $render[$key.'_count'] = $customer['deal_count'];
+            $render[$key.'_company'] = $customer['company'];
         }
 
         return $this->write('Summarize sales performance, stage concentration, potential risks, and suggested next steps. This is a current snapshot, not a historical trend. Expected close dates are not actual revenue.', [

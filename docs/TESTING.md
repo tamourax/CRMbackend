@@ -16,11 +16,11 @@ Fixture values: Lead `1000.10`, Negotiation `2000.20`, Proposal `3000.30`, Won `
 
 Calendar tests freeze Cairo time and include both boundaries of the current month, adjacent months, and terminal-stage exclusions for the open-closing metric. Schema tests recover from PostgreSQL constraint failures through savepoints.
 
-## Live AI acceptance: pending key
+## Opt-in live AI acceptance
 
 Mocked tests prove application boundaries and deterministic calculations, not a real model's reasoning. Run the five assessment questions with a valid key. Compare every amount/count/source with database facts; check paraphrases, missing reasons, nonexistent records, top-N truncation, hostile notes, and cross-user requests. Verify opportunities are suggestions and unsupported historical claims are refused.
 
-Source allowlists and numeric placeholders reduce errors, but cannot prove natural-language semantics. The missing key remains an explicit live-acceptance gap. The recorded demo is not evidence of successful live AI generation.
+Source allowlists and numeric placeholders reduce errors, but cannot prove natural-language semantics. A supplied Gemini key is configured locally. Set `RUN_LIVE_AI=1` and run `php artisan test --compact tests/Feature/LiveAiTest.php` to test the five questions and both summaries with synthetic PostgreSQL fixtures. Default runs skip these network/quota-dependent cases. Run test processes sequentially against the shared test database. Provider overload/timeouts can fail a live run independently of offline correctness.
 
 ## CI
 

@@ -1,6 +1,6 @@
 # Demo walkthrough
 
-The [frontend repository](https://github.com/tamourax/CRMfrontend) contains `docs/demo.webm`, screenshots, and `npm run demo`. The recording uses real PostgreSQL data and openly shows missing AI configuration. There are no simulated AI answers.
+The [frontend repository](https://github.com/tamourax/CRMfrontend) contains `docs/demo.webm`, screenshots, and `npm run demo`. The recorder uses real PostgreSQL data, detects configured AI, and captures actual generated results or visible provider errors. Without a key it shows the missing configuration state. There are no simulated AI answers.
 
 1. Sign in as Alex. Explain that SQL-backed services calculate the cards, pipeline excludes Won/Lost, and the report is a current snapshot.
 2. Customers → Atlas Industries: show contact/company details, notes, associated deals, and a deal's customer link.

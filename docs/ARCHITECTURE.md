@@ -8,7 +8,7 @@ flowchart LR
     Laravel --> Services[CRM queries and reporting]
     Services --> DB[(PostgreSQL)]
     Laravel --> AI[AI orchestrator]
-    AI -->|strict tool selection| Provider[OpenAI Responses API]
+    AI -->|strict tool selection| Provider[Gemini API or OpenAI Responses]
     AI -->|validated scoped query| Services
     Services -->|authorized facts| AI
     AI -->|minimized context / structured narrative| Provider
@@ -70,7 +70,7 @@ Domain tables also have timestamps. Users own customers and reach deals through 
 
 Customer summaries use authorized profile data, minimized notes, aggregates across all associated deals, and at most twenty highest-value deal details. Report summaries reuse exactly the dashboard reporting service. Deal questions select one strict read-only tool; Laravel independently validates its name/arguments, applies the authenticated user, executes scoped queries, then sends results to a separate structured narrative request.
 
-Tools: `search_deals`, `stage_totals`, `top_customers`, `lost_deal_reasons`, `unsupported_question`. There is no arbitrary SQL, ownership parameter, network tool, write tool, or autonomous loop. Detail limits are disclosed; sums/counts cover all matching records, not just the displayed subset. Source keys are server-generated from authorized results. Model-selected sources must be in that set. Numeric narrative claims use `{{fact_key}}` placeholders resolved by Laravel. Unknown facts/sources, literal digits, incomplete output, and malformed responses are rejected. Fact cards always use backend values.
+Tools: `search_deals`, `stage_totals`, `top_customers`, `lost_deal_reasons`, `unsupported_question`. There is no arbitrary SQL, ownership parameter, network tool, write tool, or autonomous loop. Detail limits are disclosed; sums/counts cover all matching records, not just the displayed subset. Source keys are server-generated from authorized results. Model-selected sources must be in that set. Numeric narrative claims use `{{fact_key}}` placeholders resolved by Laravel. Unknown facts/sources, literal digits, incomplete output, and malformed responses are rejected. Fact cards always use backend values. Both providers use the same summary contract and prompt rules. Report render values include the actual customer counts, company labels, stage totals, and amounts so supported narrative facts have authoritative placeholders. Date-only assistant questions include all stages unless the user explicitly requests open/active or a particular stage.
 
 These checks constrain numbers and access; they cannot prove the semantics of free-form recommendations. Number words, misleading use of a valid fact, or unsupported qualitative statements remain possible and need live evaluation/human review. Missing reasons remain null. Opportunities are suggestions. No history is invented. Fakes are confined to tests.
 
@@ -86,4 +86,4 @@ These checks constrain numbers and access; they cannot prove the semantics of fr
 
 ## Deliberate limits
 
-Chat turns are independent and synchronous: at most one tool-selection and one summary request. No persisted chats, embeddings, vector DB, Redis, queue workers, or streaming are required. Default provider timeout is 25 seconds per call; the frontend allows the two-call budget. Future work: bounded conversation state, sensitive-data-safe audit events, async generation, snapshot-consistent multi-query reports, explicit organization membership, and historical sales events.
+Chat turns are independent and synchronous: at most one tool-selection and one summary request. No persisted chats, embeddings, vector DB, Redis, queue workers, or streaming are required. OpenAI uses a 25-second per-call timeout. Gemini shares a 55-second overall budget across both phases, with a 25-second per-attempt timeout and one retry only after a received transient server error. No retry is made for quota/authentication errors or network timeouts. Future work: bounded conversation state, sensitive-data-safe audit events, async generation, snapshot-consistent multi-query reports, explicit organization membership, and historical sales events.

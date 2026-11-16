@@ -22,4 +22,4 @@ Generate a bounded read-only CRM; Laravel schema/models/factories/validation/pol
 
 Trace a request end-to-end. Explain session/CSRF vs authorization. Reproduce a foreign-account `404`. Change a filter with its test. Explain report definitions and missing data. Follow a model tool call into the scoped query. Explain why numeric/source checks cannot prove qualitative meaning. Debug provider failures without logging secrets. Independently run the live question set once a key is available.
 
-No live key was supplied. Mocked tests and the unavailable-state video must not be presented as successful live AI validation.
+A Gemini key was supplied after the initial delivery. Added a Gemini adapter, shared structured summary contracts and complete report fact references, bounded transient-error retry, trusted-CA configuration, and opt-in live tests. The key is local-only. Mocked tests must not be described as live validation; report actual live results and provider failures separately.

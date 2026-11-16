@@ -34,6 +34,11 @@ foreach (['.env' => 'orbit_crm', '.env.testing' => 'orbit_crm_test'] as $file =>
         $values['APP_ENV'] = 'testing';
     } else {
         $values['OPENAI_API_KEY'] = $existing['OPENAI_API_KEY'] ?? '';
+        foreach (['AI_PROVIDER', 'OPENAI_MODEL', 'GEMINI_API_KEY', 'GEMINI_MODEL', 'AI_CA_BUNDLE'] as $setting) {
+            if (isset($existing[$setting])) {
+                $values[$setting] = $existing[$setting];
+            }
+        }
     }
     $content = $template;
     foreach ($values as $name => $value) {
