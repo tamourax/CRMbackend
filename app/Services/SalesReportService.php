@@ -27,6 +27,7 @@ class SalesReportService
             }
         });
         $query->orderByDesc($metric === 'active_count' ? 'deals_count' : 'deals_sum_value')->orderBy('id');
+
         return $query->limit($limit)->get()->map(fn ($customer) => [
             'id' => $customer->id, 'company' => $customer->company, 'name' => $customer->name,
             'deal_count' => $customer->deals_count, 'total_value' => CrmQueries::decimal($customer->deals_sum_value ?? 0),
@@ -44,6 +45,7 @@ class SalesReportService
         $won = (clone $base)->where('stage', 'won');
         $lost = (clone $base)->where('stage', 'lost');
         $closing = $this->queries->deals($user, ['stage' => 'open', 'closing' => 'this_month']);
+
         return [
             'total_deals' => (clone $base)->count(), 'total_value' => CrmQueries::decimal((clone $base)->sum('value')),
             'pipeline_value' => CrmQueries::decimal((clone $base)->open()->sum('value')), 'open_count' => (clone $base)->open()->count(),

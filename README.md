@@ -1,58 +1,76 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Orbit CRM · Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel 13 REST API with PostgreSQL 17, session authentication, per-user ownership, deterministic sales reports, and read-only AI assistance.
 
-## About Laravel
+Companion: [React frontend](https://github.com/tamourax/CRMfrontend).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Requirements and setup
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+PHP 8.4+, Composer 2, PostgreSQL 17. Enable PHP `pdo_pgsql`, `pdo`, `mbstring`, `openssl`, `curl`, `fileinfo`, `xml`, `ctype`, `tokenizer`, and `dom`. Check `php --ini` and `php -m`. No Node installation is required for this API.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```sh
+composer install
+php scripts/setup-local.php
+php artisan migrate --seed
+php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+The local helper expects PostgreSQL administrator access on localhost. Defaults are `127.0.0.1:5433`, matching the assessment workstation; override `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD` for your installation. It creates a restricted `orbit_crm_app` login, the `orbit_crm` and `orbit_crm_test` databases, and ignored `.env`/`.env.testing` files. It preserves existing application credentials and the AI key. It does not change PostgreSQL authentication configuration or grant application superuser privileges.
 
-## Contributing
+Alternatively, copy `.env.example` to `.env`, configure `DB_*` for an application-owned database, run `php artisan key:generate`, then migrate and seed. The example uses conventional port `5432`. Create a separate test database and `.env.testing` when configuring manually.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Use browser URLs **http://localhost:5173** and **http://localhost:8000** consistently; mixing `localhost` and `127.0.0.1` breaks cookie sharing. `GET /up` is the health check.
 
-## Code of Conduct
+## Synthetic demo accounts
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+| Account | Email | Demo-only password |
+|---|---|---|
+| Alex Morgan | `alex@orbit.example` | `OrbitDemo!2026` |
+| Sarah Chen | `sarah@orbit.example` | `OrbitDemo!2026` |
 
-## Security Vulnerabilities
+These are intentionally public, fictional seed credentials, never production credentials. Each account owns 10 customers and 30 deals, including a customer with no deals, all sales stages, missing notes/loss reasons, and varied closing dates. Seeding is idempotent and limited to local/testing environments. Re-seeding refreshes dates relative to the current Cairo calendar.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Environment variables
 
-## License
+| Variables | Purpose |
+|---|---|
+| `APP_KEY`, `APP_ENV`, `APP_DEBUG`, `APP_URL` | Encryption, environment, safe error output, API URL |
+| `FRONTEND_URL`, `SANCTUM_STATEFUL_DOMAINS` | Exact first-party origin and SPA hosts/ports |
+| `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | PostgreSQL connection |
+| `SESSION_DRIVER`, `SESSION_ENCRYPT`, `SESSION_DOMAIN`, `SESSION_SECURE_COOKIE`, `SESSION_SAME_SITE` | Encrypted server-side sessions and cookies |
+| `CACHE_STORE` | Database during local use, array during tests |
+| `AI_PROVIDER`, `OPENAI_API_KEY`, `OPENAI_MODEL` | AI adapter, server-side key, model |
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Only `.env.example` is tracked. Never commit actual keys, passwords, `.env.testing`, or session data. Production needs HTTPS, secure cookies, private PostgreSQL networking, strong authentication, individual credentials, and removal of demo users.
+
+## AI configuration and delivery status
+
+Set `AI_PROVIDER=openai`, a valid `OPENAI_API_KEY`, and `OPENAI_MODEL=gpt-5.4-mini` in `.env`; run `php artisan config:clear`. The adapter uses Laravel HTTP with OpenAI Responses, strict tool schemas, structured summaries, `store=false`, and bounded timeouts.
+
+**No live API key was supplied. Live AI behavior has not been verified.** Missing configuration returns an honest `503`; the frontend displays it. Fake providers exist only in tests and are never selected by application configuration. Mocked HTTP contract tests do not prove live model quality or account/model availability.
+
+After adding a key, run the five questions in [the demo guide](docs/DEMO.md), checking numbers and source links. Contact fields are omitted; notes/descriptions are minimized and redacted on a best-effort basis. Company and business information can still be sent externally. Review provider/privacy settings before real customer use. `store=false` is not a guarantee of zero provider retention.
+
+## Tests
+
+```sh
+php artisan test --compact
+php vendor/bin/pint --format agent
+composer audit
+```
+
+Tests use **PostgreSQL**, not SQLite. The helper creates `.env.testing` using `orbit_crm_test`. The base test case refuses a non-PostgreSQL connection or database not ending in `_test` before migrations. `RefreshDatabase` resets that disposable test database; never use a real database.
+
+Coverage includes authentication, ownership/IDOR, relationships, decimal aggregates, filters, date boundaries, database constraints, missing information, tool validation, prompt-injection access boundaries, fact/source validation, rate limits, and provider failures. Frontend/browser tests live in the separate React repo.
+
+## Documentation
+
+- [Architecture, ERD, security, decisions](docs/ARCHITECTURE.md)
+- [HTTP API](docs/API.md)
+- [Testing and acceptance](docs/TESTING.md)
+- [Demo and live evaluation](docs/DEMO.md)
+- [AI-assisted development record](docs/AI_USAGE.md)
+- [Arabic discussion guide](docs/REVIEW_GUIDE_AR.md)
+- [Security notes and local environment correction](docs/SECURITY.md)
+
+CRUD writes, roles, persisted conversations, historical revenue analytics, streaming, and hosted deployment are outside this assessment version.

@@ -21,6 +21,7 @@ class AiController extends Controller
     {
         $customer = $queries->customers($request->user())->findOrFail($id);
         Gate::authorize('view', $customer);
+
         return response()->json(['data' => $assistant->customer($customer)]);
     }
 

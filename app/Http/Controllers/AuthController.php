@@ -16,6 +16,7 @@ class AuthController extends Controller
             throw ValidationException::withMessages(['email' => ['These credentials do not match our records.']]);
         }
         $request->session()->regenerate();
+
         return $this->user($request);
     }
 
@@ -29,6 +30,7 @@ class AuthController extends Controller
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return response()->json(['message' => 'Signed out.']);
     }
 }

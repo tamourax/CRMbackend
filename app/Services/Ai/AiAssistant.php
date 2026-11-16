@@ -17,6 +17,7 @@ class AiAssistant
     public function customer(Customer $customer): array
     {
         $this->ensureConfigured();
+
         return $this->write('Summarize this customer in five sections: Customer overview, Relationship status, Associated deals, Potential opportunities, Notes and risks. Mention missing information explicitly.', $this->contexts->customer($customer));
     }
 
@@ -38,6 +39,7 @@ class AiAssistant
             $sources[$key] = ['type' => 'customer', 'id' => $customer['id'], 'label' => $customer['company']];
             $render[$key.'_value'] = $customer['total_value'];
         }
+
         return $this->write('Summarize sales performance, stage concentration, potential risks, and suggested next steps. This is a current snapshot, not a historical trend. Expected close dates are not actual revenue.', [
             'facts' => $facts, 'render_values' => $render, 'stages' => $report['stages'], 'top_customers' => $customers,
             'sources' => $sources, 'limitations' => ['No historical stage changes or actual closing dates are stored; growth trends and realized revenue cannot be determined.'],
@@ -60,6 +62,7 @@ class AiAssistant
             'top_customers' => $this->customerRanking($user, $args),
             'lost_deal_reasons' => $this->lossReasons($user),
         };
+
         return $this->write('Answer the question using only this query result: '.$this->contexts->clean($question), $context);
     }
 
@@ -67,6 +70,7 @@ class AiAssistant
     {
         $nullableString = ['type' => ['string', 'null']];
         $nullableId = ['type' => ['integer', 'null']];
+
         return [
             $this->tool('search_deals', 'Find accessible deals by stage, expected close dates, title, customer, or explicit deal ID. All database filtering is performed by the server.', [
                 'stage' => ['type' => ['string', 'null'], 'enum' => [...Deal::STAGES, 'open', null]],
@@ -105,6 +109,9 @@ class AiAssistant
         if ($rules === null || ! is_array($arguments) || array_diff(array_keys($arguments), array_keys($rules)) || Validator::make($arguments, $rules)->fails()) {
             throw new AiUnavailable('The assistant selected an invalid query. Please rephrase your question.');
         }
+        if (! empty($arguments['close_from']) && ! empty($arguments['close_to']) && $arguments['close_to'] < $arguments['close_from']) {
+            throw new AiUnavailable('The assistant selected an invalid date range. Please rephrase your question.');
+        }
     }
 
     private function dealSearch(User $user, array $args): array
@@ -113,6 +120,7 @@ class AiAssistant
         $count = (clone $query)->count();
         $facts = ['matched_count' => $count, 'displayed_count' => min($count, $args['limit']), 'total_value' => CrmQueries::decimal((clone $query)->sum('value'))];
         $records = $this->queries->sortDeals($query->with('customer'), $args['sort'])->limit($args['limit'])->get();
+
         return $this->recordsContext($records->all(), $facts, $count > $args['limit']);
     }
 
@@ -120,6 +128,7 @@ class AiAssistant
     {
         $query = $this->queries->deals($user, ['stage' => $stage]);
         $facts = ['stage' => $stage, 'deal_count' => (clone $query)->count(), 'total_value' => CrmQueries::decimal((clone $query)->sum('value'))];
+
         return ['facts' => $facts, 'render_values' => $facts, 'sources' => ['stage_total' => ['type' => 'aggregate', 'label' => ucfirst($stage).' · all matching deals']], 'limitations' => []];
     }
 
@@ -138,6 +147,7 @@ class AiAssistant
             $render[$key.'_value'] = $customer['total_value'];
             $records[] = ['source_key' => $key, 'company' => $this->contexts->clean($customer['company'], [$customer['name']]), 'deal_count' => $customer['deal_count'], 'total_value' => $customer['total_value']];
         }
+
         return ['facts' => $facts, 'render_values' => $render, 'records' => $records, 'sources' => $sources, 'limitations' => ['This is a limited ranking, not a list of all customers.']];
     }
 
@@ -147,6 +157,7 @@ class AiAssistant
         $count = (clone $query)->count();
         $recorded = (clone $query)->whereNotNull('lost_reason')->whereRaw("TRIM(lost_reason) <> ''")->count();
         $records = (clone $query)->with('customer')->orderByDesc('value')->orderBy('id')->limit(20)->get();
+
         return $this->recordsContext($records->all(), ['lost_deals' => $count, 'recorded_reason_count' => $recorded, 'unrecorded_reason_count' => $count - $recorded], $count > 20);
     }
 
@@ -163,6 +174,7 @@ class AiAssistant
             $render[$key.'_close_date'] = $deal->expected_close_date?->toDateString() ?? 'Not scheduled';
             $records[] = $this->contexts->deal($deal);
         }
+
         return ['facts' => $facts, 'render_values' => $render, 'records' => $records, 'sources' => $sources, 'limitations' => $truncated ? ['Record details are limited to the highest-ranked results; aggregate facts cover all matching records.'] : []];
     }
 
@@ -186,10 +198,12 @@ class AiAssistant
             }
             $content = preg_replace_callback('/\{\{([a-zA-Z0-9_]+)\}\}/', function (array $match) use ($context): string {
                 $value = (string) $context['render_values'][$match[1]];
+
                 return str_contains($match[1], 'value') && is_numeric($value) ? 'USD '.$value : $value;
             }, $content);
             $sections[] = ['title' => $section['title'], 'content' => $content];
         }
+
         return ['sections' => $sections, 'facts' => $context['facts'], 'sources' => array_values(array_intersect_key($context['sources'], array_flip($result['source_keys']))), 'generated_at' => now()->toIso8601String(), 'mode' => 'live', 'limitations' => $context['limitations']];
     }
 

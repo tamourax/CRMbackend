@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Policies;
+
 use App\Models\Deal;
 use App\Models\User;
 

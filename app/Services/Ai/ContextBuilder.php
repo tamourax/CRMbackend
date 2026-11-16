@@ -18,12 +18,14 @@ class ContextBuilder
         }
         $text = preg_replace('/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/i', '[email withheld]', $text);
         $text = preg_replace('/(?<!\w)\+?\d[\d\s().\-]{6,}\d(?!\w)/', '[number withheld]', $text);
+
         return mb_substr(strip_tags($text), 0, 2000);
     }
 
     public function deal(Deal $deal): array
     {
         $sensitive = [$deal->customer->name, $deal->customer->email, $deal->customer->phone];
+
         return [
             'source_key' => 'deal_'.$deal->id, 'title' => $this->clean($deal->title, $sensitive),
             'company' => $this->clean($deal->customer->company, $sensitive),
@@ -47,6 +49,7 @@ class ContextBuilder
             $render['deal_'.$deal->id.'_value'] = $deal->value;
             $render['deal_'.$deal->id.'_close_date'] = $deal->expected_close_date?->toDateString() ?? 'Not scheduled';
         }
+
         return [
             'facts' => $facts, 'sources' => $sources, 'render_values' => $render,
             'records' => $records->map(fn (Deal $deal) => $this->deal($deal))->all(),
@@ -72,6 +75,7 @@ class ContextBuilder
                 $public['render_values'][$key.'_company'] = $record['company'];
             }
         }
+
         return $public;
     }
 }

@@ -5,7 +5,10 @@ namespace Tests\Feature;
 use App\Models\Customer;
 use App\Models\Deal;
 use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -90,7 +93,7 @@ class CrmApiTest extends TestCase
 
     public function test_current_month_includes_both_boundaries_and_excludes_other_months(): void
     {
-        $this->travelTo(\Carbon\Carbon::parse('2026-11-16 12:00:00', 'Africa/Cairo'));
+        $this->travelTo(Carbon::parse('2026-11-16 12:00:00', 'Africa/Cairo'));
         $user = User::factory()->create();
         $customer = Customer::factory()->for($user)->create();
         foreach (['2026-11-01', '2026-11-30', '2026-10-31', '2026-12-01'] as $date) {
@@ -115,7 +118,7 @@ class CrmApiTest extends TestCase
     public function test_query_and_chat_validation(): void
     {
         $this->actingAs(User::factory()->create());
-        foreach (['stage=invalid', 'per_page=101', 'page=0', 'sort=value;DROP', 'close_from=yesterday', 'customer_id=-1'] as $query) {
+        foreach (['stage=invalid', 'per_page=101', 'page=0', 'sort=value;DROP', 'close_from=yesterday', 'customer_id=-1', 'close_from=2026-12-01&close_to=2026-11-01'] as $query) {
             $this->getJson('/api/deals?'.$query)->assertUnprocessable();
         }
         $this->getJson('/api/customers?status=invalid')->assertUnprocessable();
@@ -124,18 +127,41 @@ class CrmApiTest extends TestCase
         }
     }
 
+    public function test_demo_seeding_is_idempotent_and_isolated(): void
+    {
+        $this->seed();
+        $this->seed();
+        $this->assertSame(2, User::count());
+        $this->assertSame(20, Customer::count());
+        $this->assertSame(60, Deal::count());
+        foreach (User::all() as $user) {
+            $this->assertSame(10, $user->customers()->count());
+            $this->assertSame(30, $user->deals()->count());
+            $this->assertSame(6, $user->deals()->distinct()->count('stage'));
+            $this->assertSame(1, $user->customers()->doesntHave('deals')->count());
+        }
+    }
+
+    public function test_cors_allows_only_the_configured_origin(): void
+    {
+        $this->options('/api/customers', [], ['Origin' => 'http://localhost:5173', 'Access-Control-Request-Method' => 'GET'])
+            ->assertHeader('Access-Control-Allow-Origin', 'http://localhost:5173')->assertHeader('Access-Control-Allow-Credentials', 'true');
+        $this->options('/api/customers', [], ['Origin' => 'https://untrusted.example', 'Access-Control-Request-Method' => 'GET'])
+            ->assertHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+    }
+
     public function test_database_rejects_negative_value_invalid_stage_and_orphan_relationship(): void
     {
         $customer = Customer::factory()->create();
         foreach ([['value' => '-1.00'], ['stage' => 'invented'], ['customer_id' => 9999999]] as $attributes) {
-            \Illuminate\Support\Facades\DB::beginTransaction();
+            DB::beginTransaction();
             try {
                 Deal::factory()->for($customer)->create($attributes);
                 $this->fail('Expected a database constraint violation.');
-            } catch (\Illuminate\Database\QueryException) {
+            } catch (QueryException) {
                 $this->assertTrue(true);
             } finally {
-                \Illuminate\Support\Facades\DB::rollBack();
+                DB::rollBack();
             }
         }
     }

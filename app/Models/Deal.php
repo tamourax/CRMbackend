@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use Database\Factories\DealFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Deal extends Model
 {
-    /** @use HasFactory<\Database\Factories\DealFactory> */
+    /** @use HasFactory<DealFactory> */
     use HasFactory;
 
     public const STAGES = ['lead', 'qualified', 'proposal', 'negotiation', 'won', 'lost'];

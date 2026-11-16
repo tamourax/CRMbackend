@@ -22,7 +22,7 @@ if (! $pdo->query("SELECT 1 FROM pg_roles WHERE rolname='orbit_crm_app'")->fetch
     exit("Role orbit_crm_app already exists. Configure .env manually; its password was not changed.\n");
 }
 foreach (['orbit_crm', 'orbit_crm_test'] as $database) {
-    if (! $pdo->query("SELECT 1 FROM pg_database WHERE datname=".$pdo->quote($database))->fetchColumn()) {
+    if (! $pdo->query('SELECT 1 FROM pg_database WHERE datname='.$pdo->quote($database))->fetchColumn()) {
         $pdo->exec('CREATE DATABASE '.$database.' OWNER orbit_crm_app');
     }
 }

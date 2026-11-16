@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Ai\AiAssistant;
 use App\Services\Ai\AiProviderInterface;
 use App\Services\Ai\OpenAiProvider;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -19,7 +20,9 @@ class AiAssistantTest extends TestCase
     use RefreshDatabase;
 
     private FakeAiProvider $provider;
+
     private User $user;
+
     private Customer $customer;
 
     protected function setUp(): void
@@ -57,7 +60,7 @@ class AiAssistantTest extends TestCase
 
     public function test_current_month_question_uses_calendar_boundaries(): void
     {
-        $this->travelTo(\Carbon\Carbon::parse('2026-11-16', 'Africa/Cairo'));
+        $this->travelTo(Carbon::parse('2026-11-16', 'Africa/Cairo'));
         foreach (['2026-11-01', '2026-11-30', '2026-12-01'] as $date) {
             Deal::factory()->for($this->customer)->create(['expected_close_date' => $date]);
         }

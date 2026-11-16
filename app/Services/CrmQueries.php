@@ -19,6 +19,7 @@ class CrmQueries
         if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
+
         return $query;
     }
 
@@ -50,6 +51,7 @@ class CrmQueries
         if (! empty($filters['close_to'])) {
             $query->where('expected_close_date', '<=', $filters['close_to']);
         }
+
         return $query;
     }
 
@@ -66,6 +68,7 @@ class CrmQueries
     public static function decimal(string|int $value): string
     {
         $parts = explode('.', (string) $value);
+
         return $parts[0].'.'.str_pad($parts[1] ?? '', 2, '0');
     }
 }

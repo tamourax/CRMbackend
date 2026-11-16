@@ -33,6 +33,7 @@ class OpenAiProvider implements AiProviderInterface
         if (! is_array($arguments) || ! is_string($calls[0]['name'] ?? null)) {
             throw new AiUnavailable('The assistant returned an invalid query. Please try again.');
         }
+
         return ['name' => $calls[0]['name'], 'arguments' => $arguments];
     }
 
@@ -93,6 +94,7 @@ PROMPT,
         if (! is_array($data) || ($data['status'] ?? null) !== 'completed') {
             throw new AiUnavailable('The AI response was incomplete. Please try a more specific question.');
         }
+
         return $data;
     }
 }

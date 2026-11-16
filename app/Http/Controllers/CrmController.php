@@ -26,12 +26,14 @@ class CrmController extends Controller
     {
         $customer = $this->queries->customers($request->user())->with(['deals' => fn ($query) => $query->orderByDesc('value')])->findOrFail($id);
         Gate::authorize('view', $customer);
+
         return new CustomerResource($customer);
     }
 
     public function deals(ListDealsRequest $request): AnonymousResourceCollection
     {
         $query = $this->queries->deals($request->user(), $request->validated())->with('customer:id,name,company');
+
         return DealResource::collection($this->queries->sortDeals($query, $request->input('sort'))->paginate($request->integer('per_page', 10))->withQueryString());
     }
 
@@ -39,6 +41,7 @@ class CrmController extends Controller
     {
         $deal = $this->queries->deals($request->user())->with('customer')->findOrFail($id);
         Gate::authorize('view', $deal);
+
         return new DealResource($deal);
     }
 

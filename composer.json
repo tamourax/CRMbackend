@@ -1,15 +1,21 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "orbit/crm-backend",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "description": "An authenticated PostgreSQL CRM API with grounded, read-only AI assistance.",
+    "keywords": [
+        "crm",
+        "laravel",
+        "postgresql",
+        "ai"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.3",
         "laravel/framework": "^13.17",
         "laravel/sanctum": "^4.4",
-        "laravel/tinker": "^3.0"
+        "laravel/tinker": "^3.0",
+        "ext-pdo_pgsql": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -34,17 +40,8 @@
         }
     },
     "scripts": {
-        "setup": [
-            "composer install",
-            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
-            "@php artisan key:generate",
-            "@php artisan migrate --force",
-            "npm install --ignore-scripts",
-            "npm run build"
-        ],
         "dev": [
-            "Composer\\Config::disableProcessTimeout",
-            "@php artisan dev"
+            "@php artisan serve --host=127.0.0.1 --port=8000"
         ],
         "test": [
             "@php artisan config:clear --ansi @no_additional_args",
