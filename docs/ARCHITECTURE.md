@@ -1,5 +1,7 @@
 # Architecture and design decisions
 
+AI summaries that fail grounding checks receive one correction attempt with the same authorized context. The second response passes through the same formatter; another failure returns an unavailable response. Tool selection and database queries are not rerun, and provider/network failures do not trigger this correction path. The Gemini adapter retains its original shared request deadline across correction requests.
+
 ## Request and data flow
 
 ```mermaid

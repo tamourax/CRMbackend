@@ -11,18 +11,18 @@ class GroundedResponseFormatter
     {
         $validator = Validator::make($result, ['sections' => ['required', 'array', 'min:1', 'max:8'], 'sections.*.title' => ['required', 'string', 'max:120'], 'sections.*.content' => ['required', 'string', 'max:4000'], 'source_keys' => ['present', 'array', 'max:30'], 'source_keys.*' => ['string', Rule::in(array_keys($context['sources']))]]);
         if ($validator->fails() || (count($context['sources']) > 0 && empty($result['source_keys']))) {
-            throw new AiUnavailable(__('crm.ai.response_verification_failed'));
+            throw new AiVerificationFailed(__('crm.ai.response_verification_failed'));
         }
         $sections = [];
         foreach ($result['sections'] as $section) {
             $content = $section['content'];
             preg_match_all('/\{\{([a-zA-Z0-9_]+)\}\}/', $content, $matches);
             if (array_diff($matches[1], array_keys($context['render_values']))) {
-                throw new AiUnavailable(__('crm.ai.unsupported_fact'));
+                throw new AiVerificationFailed(__('crm.ai.unsupported_fact'));
             }
             $untemplated = preg_replace('/\{\{[a-zA-Z0-9_]+\}\}/', '', $content);
             if (preg_match('/[0-9{}]/', $untemplated.$section['title'])) {
-                throw new AiUnavailable(__('crm.ai.unverified_number'));
+                throw new AiVerificationFailed(__('crm.ai.unverified_number'));
             }
             $content = preg_replace_callback('/\{\{([a-zA-Z0-9_]+)\}\}/', function (array $match) use ($context): string {
                 $value = (string) $context['render_values'][$match[1]];

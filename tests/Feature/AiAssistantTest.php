@@ -142,6 +142,24 @@ class AiAssistantTest extends TestCase
         $this->assertSame([], $this->provider->contexts);
     }
 
+    public function test_invalid_summary_is_corrected_once_using_the_same_authorized_context(): void
+    {
+        $this->provider->responses = [
+            ['sections' => [['title' => 'Summary', 'content' => '{{invented_total}}']], 'source_keys' => ['stage_total']],
+            ['sections' => [['title' => 'Summary', 'content' => 'Total: {{total_value}}']], 'source_keys' => ['stage_total']],
+        ];
+        $this->postJson('/api/assistant/messages', ['question' => 'Negotiation total'])->assertOk();
+        $this->assertCount(2, $this->provider->contexts);
+        $this->assertSame($this->provider->contexts[0], $this->provider->contexts[1]);
+    }
+
+    public function test_invalid_summary_cannot_retry_indefinitely_or_bypass_verification(): void
+    {
+        $this->provider->response = ['sections' => [['title' => 'Summary', 'content' => '999 invented deals']], 'source_keys' => ['stage_total']];
+        $this->postJson('/api/assistant/messages', ['question' => 'Negotiation total'])->assertStatus(503)->assertJsonMissingPath('data');
+        $this->assertCount(2, $this->provider->contexts);
+    }
+
     public function test_unsupported_question_does_not_generate_a_fictional_answer(): void
     {
         $this->provider->call = ['name' => 'unsupported_question', 'arguments' => []];

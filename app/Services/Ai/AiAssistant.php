@@ -38,7 +38,7 @@ class AiAssistant
             return $this->formatter->unsupported();
         }
 
-        return $this->write('Answer the question using only this query result: '.$question, $this->executor->execute($user, $name, $arguments));
+        return $this->write('Answer the question using only this query result: ' . $question, $this->executor->execute($user, $name, $arguments));
     }
 
     public function tools(): array
@@ -50,7 +50,16 @@ class AiAssistant
     {
         $result = $this->provider->summarize($task, $this->contexts->publicContext($context));
 
-        return $this->formatter->format($result, $context);
+        try {
+            return $this->formatter->format($result, $context);
+        } catch (AiVerificationFailed) {
+            $result = $this->provider->summarize(
+                $task . ' The previous response failed validation. Generate a fresh response using ONLY exact keys from render_values and source_keys. Omit any claim without a supplied key. Never write literal numbers, dates, or braces except valid placeholders. Do not invent placeholder names.',
+                $this->contexts->publicContext($context),
+            );
+
+            return $this->formatter->format($result, $context);
+        }
     }
 
     private function ensureConfigured(): void

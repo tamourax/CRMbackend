@@ -14,6 +14,8 @@ class FakeAiProvider implements AiProviderInterface
 
     public array $contexts = [];
 
+    public array $responses = [];
+
     public function isConfigured(): bool
     {
         return $this->configured;
@@ -27,6 +29,10 @@ class FakeAiProvider implements AiProviderInterface
     public function summarize(string $task, array $context): array
     {
         $this->contexts[] = $context;
+
+        if ($this->responses !== []) {
+            return array_shift($this->responses);
+        }
 
         return $this->response ?? ['sections' => [['title' => 'Overview', 'content' => 'The available records are shown in the verified facts. Review pending opportunities and recorded risks.']], 'source_keys' => array_slice($context['source_keys'], 0, 20)];
     }
