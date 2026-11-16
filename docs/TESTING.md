@@ -12,6 +12,8 @@ Run backend: `php artisan test --compact`. A disposable PostgreSQL database endi
 
 ## Known ground truth
 
+Extracted service boundaries also have direct tests: `DealToolExecutor` must enforce ownership and reject an injected owner without relying on a controller, while `GroundedResponseFormatter` must preserve a large exact decimal, authorized sources, and limitations. The offline suite contains 41 passing tests / 211 assertions; four live tests are skipped unless explicitly enabled.
+
 Fixture values: Lead `1000.10`, Negotiation `2000.20`, Proposal `3000.30`, Won `500.40`, Lost `700.50`. Expected total `7201.50`, pipeline `6000.60`, won `500.40`, lost `700.50`. A foreign user's large deal must not alter them. Another test verifies `1234.56 + 0.44 = 1235.00` and exact server interpolation.
 
 Calendar tests freeze Cairo time and include both boundaries of the current month, adjacent months, and terminal-stage exclusions for the open-closing metric. Schema tests recover from PostgreSQL constraint failures through savepoints.
