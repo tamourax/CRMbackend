@@ -12,7 +12,7 @@ Run backend: `php artisan test --compact`. A disposable PostgreSQL database endi
 
 ## Known ground truth
 
-Extracted service boundaries also have direct tests: `DealToolExecutor` must enforce ownership and reject an injected owner without relying on a controller, while `GroundedResponseFormatter` must preserve a large exact decimal, authorized sources, and limitations. The last local verification passed 49 backend tests / 241 assertions, 16 frontend integration tests and 2 desktop/mobile browser tests. Four backend live tests were skipped. These are recorded local results, not live-provider acceptance or a claim that remote CI has passed.
+Extracted service boundaries also have direct tests: `DealToolExecutor` must enforce ownership and reject an injected owner without relying on a controller, while `GroundedResponseFormatter` must preserve a large exact decimal, authorized sources, and limitations. Verification on 17 November 2026 passed 51 default backend tests / 247 assertions (four live tests skipped), 16 frontend integration tests and 3 browser tests. A separate live Gemini run passed all 4 tests / 22 assertions, including the five assessment questions. Response correction is tested for one successful retry with identical authorized context and rejection after a second invalid result. See [acceptance review and CI qualifications](ASSESSMENT_REVIEW.md).
 
 Session tests cover new-login revocation, legacy-session rejection, absolute expiry, protected refresh, verifier rotation/replay rejection, logout invalidation, CSRF and response headers. Frontend integration verifies private-data clearing after `401`. Backend tests ran with PHP 8.5.12. See [test environment setup](SETUP.md#test-environment) for `.env.testing` preparation.
 

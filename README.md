@@ -194,7 +194,7 @@ Production still needs HTTPS, frontend-host security headers, database TLS/disk 
 | `composer check-platform-reqs` | Active PHP/extensions |
 | `composer audit` | Dependency advisories |
 
-Last local verification: **49 backend tests / 241 assertions**, **16 frontend integration tests**, **2 desktop/mobile browser tests**, and a successful frontend build. Four live-provider tests were skipped. Tests require an isolated PostgreSQL database ending in `_test`. [Test environment and live evaluation](docs/TESTING.md).
+Verification on 17 November 2026: **51 default backend tests / 247 assertions**, **16 frontend integration tests**, **3 browser tests**, and a successful frontend build. A separate live Gemini run passed **4 tests / 22 assertions**, including all five assessment questions. Tests require an isolated PostgreSQL database ending in `_test`. [Test environment](docs/TESTING.md) · [Assessment coverage and submission qualifications](docs/ASSESSMENT_REVIEW.md).
 
 ## Delivery and review
 
