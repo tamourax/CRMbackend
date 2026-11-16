@@ -7,7 +7,7 @@ use App\Models\Deal;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
-class CrmQueries
+class CrmQueryService
 {
     public function customers(User $user, array $filters = []): Builder
     {

@@ -4,9 +4,9 @@ namespace App\Services\Ai;
 
 use App\Models\Customer;
 use App\Models\Deal;
-use App\Services\CrmQueries;
+use App\Services\CrmQueryService;
 
-class ContextBuilder
+class AiContextBuilder
 {
     public function clean(?string $text, array $sensitive = []): ?string
     {
@@ -40,7 +40,7 @@ class ContextBuilder
     {
         $base = $customer->deals();
         $records = (clone $base)->with('customer')->orderByDesc('value')->orderBy('id')->limit(20)->get();
-        $facts = ['total_deals' => (clone $base)->count(), 'open_deals' => (clone $base)->open()->count(), 'pipeline_value' => CrmQueries::decimal((clone $base)->open()->sum('value')), 'won_value' => CrmQueries::decimal((clone $base)->where('stage', 'won')->sum('value'))];
+        $facts = ['total_deals' => (clone $base)->count(), 'open_deals' => (clone $base)->open()->count(), 'pipeline_value' => CrmQueryService::decimal((clone $base)->open()->sum('value')), 'won_value' => CrmQueryService::decimal((clone $base)->where('stage', 'won')->sum('value'))];
         $sources = ['customer_'.$customer->id => ['type' => 'customer', 'id' => $customer->id, 'label' => $customer->localized('company')]];
         $render = $facts;
         foreach ($records as $deal) {

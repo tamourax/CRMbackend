@@ -18,7 +18,7 @@ Pipeline هي قيمة Lead وQualified وProposal وNegotiation. Won وLost م�
 
 ## شرح الـrefactor
 
-`AiAssistant` بقى منسق للخطوات. `DealToolCatalog` مسؤول عن الأدوات المسموحة ومدخلاتها، و`DealToolExecutor` بيتحقق وينفذ استعلامات مقيدة بالمستخدم. `ContextBuilder` بيجهز السياق، و`GroundedResponseFormatter` بيتحقق من المصادر والحقائق قبل عرض الرد. التقسيم ده فصل مسؤوليات الكود مع الحفاظ على نفس الـAPI والحسابات والصلاحيات.
+`AiAssistant` بقى منسق للخطوات. `DealToolCatalog` مسؤول عن الأدوات المسموحة ومدخلاتها، و`DealToolExecutor` بيتحقق وينفذ استعلامات مقيدة بالمستخدم. `AiContextBuilder` بيجهز السياق، و`GroundedResponseFormatter` بيتحقق من المصادر والحقائق قبل عرض الرد. التقسيم ده فصل مسؤوليات الكود مع الحفاظ على نفس الـAPI والحسابات والصلاحيات.
 
 في الواجهة، كل feature لها صفحات وquery hooks. `App` بيحدد حالة الدخول، و`WorkspaceLayout` مسؤول عن شكل مساحة العمل، و`WorkspaceRoutes` مسؤول عن اختيار الصفحة. طلبات الشبكة منفصلة عن تنسيق العرض، ومعاملات الروابط بتتقرأ من React Router.
 

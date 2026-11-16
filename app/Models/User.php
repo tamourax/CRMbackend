@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTranslations;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -17,7 +18,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasTranslations, Notifiable;
 
     public function customers(): HasMany
     {
@@ -41,13 +42,5 @@ class User extends Authenticatable
             'password' => 'hashed',
             'translations' => 'array',
         ];
-    }
-
-    public function localized(string $attribute): mixed
-    {
-        $translations = $this->getAttribute('translations') ?? [];
-        $localeValues = $translations[app()->getLocale()] ?? [];
-
-        return array_key_exists($attribute, $localeValues) ? $localeValues[$attribute] : $this->getAttribute($attribute);
     }
 }

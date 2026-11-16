@@ -8,7 +8,7 @@ use App\Services\SalesReportService;
 
 class AiAssistant
 {
-    public function __construct(private AiProviderInterface $provider, private SalesReportService $reports, private ContextBuilder $contexts, private DealToolCatalog $catalog, private DealToolExecutor $executor, private GroundedResponseFormatter $formatter) {}
+    public function __construct(private AiProviderInterface $provider, private SalesReportService $reports, private AiContextBuilder $contexts, private DealToolCatalog $catalog, private DealToolExecutor $executor, private GroundedResponseFormatter $formatter) {}
 
     public function customer(Customer $customer): array
     {

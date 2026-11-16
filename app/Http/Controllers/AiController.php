@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AskAssistantRequest;
 use App\Services\Ai\AiAssistant;
 use App\Services\Ai\AiProviderInterface;
-use App\Services\CrmQueries;
+use App\Services\CrmQueryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -17,7 +17,7 @@ class AiController extends Controller
         return response()->json(['data' => ['ai_configured' => $provider->isConfigured()]]);
     }
 
-    public function customer(Request $request, string $id, CrmQueries $queries, AiAssistant $assistant): JsonResponse
+    public function customer(Request $request, string $id, CrmQueryService $queries, AiAssistant $assistant): JsonResponse
     {
         $customer = $queries->customers($request->user())->findOrFail($id);
         Gate::authorize('view', $customer);

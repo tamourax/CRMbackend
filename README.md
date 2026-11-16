@@ -111,12 +111,15 @@ The backend is a **single Laravel application with service boundaries**, using c
 
 | Component | Responsibility |
 |---|---|
-| `CrmQueries` | Authenticated customer/deal queries, filtering, sorting |
+| `CustomerController`, `DealController`, `SalesReportController` | Separate customer, deal, and reporting HTTP actions; public routes remain the same |
+| `SessionService` | Start, validate, rotate, revoke, and invalidate authenticated sessions |
+| `HasTranslations` | Shared model translation lookup with the original canonical fallback |
+| `CrmQueryService` | Authenticated customer/deal queries, filtering, sorting |
 | `SalesReportService` | Exact database totals, stage statistics, customer rankings |
 | `AiAssistant` | Coordinate customer summary, deal questions, and report summary |
 | `DealToolCatalog` | Tool definitions, allowed arguments, limits, date validation |
 | `DealToolExecutor` | Validate a selected tool and execute scoped queries |
-| `ContextBuilder` | Minimize provider context and preserve authoritative render values |
+| `AiContextBuilder` | Minimize provider context and preserve authoritative render values |
 | `GroundedResponseFormatter` | Validate model output, sources, and numeric placeholders |
 | `AiProviderInterface` | Replaceable Gemini/OpenAI transport boundary |
 
@@ -159,7 +162,7 @@ app/
 ├── Policies/                  # Record authorization
 ├── Providers/                 # Dependency binding and rate limits
 └── Services/
-    ├── CrmQueries.php
+    ├── CrmQueryService.php
     ├── SalesReportService.php
     └── Ai/                    # Orchestration, tools, context, providers, verification
 database/

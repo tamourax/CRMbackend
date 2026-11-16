@@ -3,12 +3,12 @@
 namespace App\Services\Ai;
 
 use App\Models\User;
-use App\Services\CrmQueries;
+use App\Services\CrmQueryService;
 use App\Services\SalesReportService;
 
 class DealToolExecutor
 {
-    public function __construct(private CrmQueries $queries, private SalesReportService $reports, private ContextBuilder $contexts, private DealToolCatalog $catalog) {}
+    public function __construct(private CrmQueryService $queries, private SalesReportService $reports, private AiContextBuilder $contexts, private DealToolCatalog $catalog) {}
 
     public function execute(User $user, string $name, mixed $arguments): array
     {
@@ -27,7 +27,7 @@ class DealToolExecutor
     {
         $query = $this->queries->deals($user, $args);
         $count = (clone $query)->count();
-        $facts = ['matched_count' => $count, 'displayed_count' => min($count, $args['limit']), 'total_value' => CrmQueries::decimal((clone $query)->sum('value'))];
+        $facts = ['matched_count' => $count, 'displayed_count' => min($count, $args['limit']), 'total_value' => CrmQueryService::decimal((clone $query)->sum('value'))];
         $records = $this->queries->sortDeals($query->with('customer'), $args['sort'])->limit($args['limit'])->get();
 
         return $this->recordsContext($records->all(), $facts, $count > $args['limit']);
@@ -37,7 +37,7 @@ class DealToolExecutor
     {
         $query = $this->queries->deals($user, ['stage' => $stage]);
         $stageLabel = __('crm.stage.'.$stage);
-        $facts = ['stage' => $stage, 'stage_label' => $stageLabel, 'deal_count' => (clone $query)->count(), 'total_value' => CrmQueries::decimal((clone $query)->sum('value'))];
+        $facts = ['stage' => $stage, 'stage_label' => $stageLabel, 'deal_count' => (clone $query)->count(), 'total_value' => CrmQueryService::decimal((clone $query)->sum('value'))];
 
         return ['facts' => $facts, 'render_values' => $facts, 'sources' => ['stage_total' => ['type' => 'aggregate', 'label' => __('crm.ai.stage_total_source', ['stage' => $stageLabel])]], 'limitations' => []];
     }

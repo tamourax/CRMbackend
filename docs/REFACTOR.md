@@ -6,15 +6,17 @@ Keep the working HTTP API and its access/data guarantees while separating the re
 
 ## Responsibility changes
 
+The shared-code refactor separates customer, deal, and reporting HTTP actions into `CustomerController`, `DealController`, and `SalesReportController` with the same routes, validation, ownership checks, pagination, and resources. `SessionService` now owns the session lifecycle previously shared between the authentication controller and middleware. `HasTranslations` removes duplicate translation lookup from the three models. `CrmQueries` was renamed to `CrmQueryService`, and `ContextBuilder` to `AiContextBuilder`; all callers and review documentation use the new names. No database or response changes are required.
+
 | Before | After | Reason |
 |---|---|---|
 | AI service defined schemas and validated model arguments | `DealToolCatalog` | One home for allowed tools, argument rules, and limits |
 | AI service executed all deal queries | `DealToolExecutor` | Explicit execution boundary with authenticated ownership |
-| Report context was assembled inside orchestration | `ContextBuilder::salesReport` | Keep context minimization and factual render values together |
+| Report context was assembled inside orchestration | `AiContextBuilder::salesReport` | Keep context minimization and factual render values together |
 | AI service parsed sources and substituted numeric facts | `GroundedResponseFormatter` | Verify untrusted output independently of network calls |
 | One mixed workflow class | Thin `AiAssistant` facade | Coordinate services and preserve existing callers |
 
-`AiAssistant::tools()` remains a compatibility facade for callers/tests. `DealToolExecutor::execute()` validates its inputs even when invoked without a controller, so moving code does not weaken the trust boundary. Business calculations still live in `CrmQueries` and `SalesReportService`; provider adapters remain behind `AiProviderInterface`.
+`AiAssistant::tools()` remains a compatibility facade for callers/tests. `DealToolExecutor::execute()` validates its inputs even when invoked without a controller, so moving code does not weaken the trust boundary. Business calculations still live in `CrmQueryService` and `SalesReportService`; provider adapters remain behind `AiProviderInterface`.
 
 ## Flow after the refactor
 
@@ -50,7 +52,7 @@ sequenceDiagram
 
 ## Verification
 
-The offline backend suite passes 41 tests / 211 assertions. Three added tests invoke extracted boundaries directly: execution must enforce ownership, injected owner arguments must fail without a controller, and formatting must preserve a large exact decimal plus sources/limitations. Existing API/provider tests continue to cover the end-to-end behavior.
+The offline backend suite covers 49 tests / 241 assertions, including direct service boundaries, session revocation/rotation, API ownership, validation, monetary calculations, and provider behavior. Four live provider tests remain opt-in.
 
 Live tests remain opt-in. During verification, a report request encountered a transient provider error; the focused retry passed. This is reported separately from deterministic offline tests.
 

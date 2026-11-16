@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTranslations;
 use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,21 +13,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Customer extends Model
 {
     /** @use HasFactory<CustomerFactory> */
-    use HasFactory;
+    use HasFactory, HasTranslations;
 
     protected $fillable = ['user_id', 'name', 'email', 'phone', 'company', 'industry', 'city', 'status', 'notes', 'translations'];
 
     protected function casts(): array
     {
         return ['translations' => 'array'];
-    }
-
-    public function localized(string $attribute): mixed
-    {
-        $translations = $this->getAttribute('translations') ?? [];
-        $localeValues = $translations[app()->getLocale()] ?? [];
-
-        return array_key_exists($attribute, $localeValues) ? $localeValues[$attribute] : $this->getAttribute($attribute);
     }
 
     public function user(): BelongsTo

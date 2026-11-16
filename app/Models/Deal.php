@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTranslations;
 use Database\Factories\DealFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Deal extends Model
 {
     /** @use HasFactory<DealFactory> */
-    use HasFactory;
+    use HasFactory, HasTranslations;
 
     public const STAGES = ['lead', 'qualified', 'proposal', 'negotiation', 'won', 'lost'];
 
@@ -22,14 +23,6 @@ class Deal extends Model
     protected function casts(): array
     {
         return ['value' => 'decimal:2', 'expected_close_date' => 'date:Y-m-d', 'translations' => 'array'];
-    }
-
-    public function localized(string $attribute): mixed
-    {
-        $translations = $this->getAttribute('translations') ?? [];
-        $localeValues = $translations[app()->getLocale()] ?? [];
-
-        return array_key_exists($attribute, $localeValues) ? $localeValues[$attribute] : $this->getAttribute($attribute);
     }
 
     public function customer(): BelongsTo
