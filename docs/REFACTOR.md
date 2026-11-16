@@ -58,4 +58,4 @@ Live tests remain opt-in. During verification, a report request encountered a tr
 
 ## Git workflow
 
-`refactor/ai-service-boundaries` groups service extraction and regression tests in separate commits. `docs/architecture-readme` groups setup/architecture/refactor documentation. Merge with `--no-ff` to keep the integration points visible; retain remote branch references. Previously published history is not rewritten.
+`refactor/ai-service-boundaries` groups the earlier AI extraction and boundary tests. `refactor/shared-services` groups the later controller/session/translation refactor. Documentation has its own branches. Remote branch references are retained; integration includes fast-forward updates and earlier merge commits. Inspect the actual graph with `git log --graph --oneline --decorate --all`. Previously published history is not rewritten.

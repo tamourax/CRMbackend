@@ -12,7 +12,9 @@ Run backend: `php artisan test --compact`. A disposable PostgreSQL database endi
 
 ## Known ground truth
 
-Extracted service boundaries also have direct tests: `DealToolExecutor` must enforce ownership and reject an injected owner without relying on a controller, while `GroundedResponseFormatter` must preserve a large exact decimal, authorized sources, and limitations. The offline suite contains 41 passing tests / 211 assertions; four live tests are skipped unless explicitly enabled.
+Extracted service boundaries also have direct tests: `DealToolExecutor` must enforce ownership and reject an injected owner without relying on a controller, while `GroundedResponseFormatter` must preserve a large exact decimal, authorized sources, and limitations. The last local verification passed 49 backend tests / 241 assertions, 16 frontend integration tests and 2 desktop/mobile browser tests. Four backend live tests were skipped. These are recorded local results, not live-provider acceptance or a claim that remote CI has passed.
+
+Session tests cover new-login revocation, legacy-session rejection, absolute expiry, protected refresh, verifier rotation/replay rejection, logout invalidation, CSRF and response headers. Frontend integration verifies private-data clearing after `401`. Backend tests ran with PHP 8.5.12. See [test environment setup](SETUP.md#test-environment) for `.env.testing` preparation.
 
 Fixture values: Lead `1000.10`, Negotiation `2000.20`, Proposal `3000.30`, Won `500.40`, Lost `700.50`. Expected total `7201.50`, pipeline `6000.60`, won `500.40`, lost `700.50`. A foreign user's large deal must not alter them. Another test verifies `1234.56 + 0.44 = 1235.00` and exact server interpolation.
 
@@ -22,7 +24,7 @@ Calendar tests freeze Cairo time and include both boundaries of the current mont
 
 Mocked tests prove application boundaries and deterministic calculations, not a real model's reasoning. Run the five assessment questions with a valid key. Compare every amount/count/source with database facts; check paraphrases, missing reasons, nonexistent records, top-N truncation, hostile notes, and cross-user requests. Verify opportunities are suggestions and unsupported historical claims are refused.
 
-Source allowlists and numeric placeholders reduce errors, but cannot prove natural-language semantics. A supplied Gemini key is configured locally. Set `RUN_LIVE_AI=1` and run `php artisan test --compact tests/Feature/LiveAiTest.php` to test the five questions and both summaries with synthetic PostgreSQL fixtures. Default runs skip these network/quota-dependent cases. Run test processes sequentially against the shared test database. Provider overload/timeouts can fail a live run independently of offline correctness.
+Source allowlists and numeric placeholders reduce errors, but cannot prove natural-language semantics. Supply your own valid provider key locally. Set `RUN_LIVE_AI=1` and run `php artisan test --compact tests/Feature/LiveAiTest.php` for synthetic PostgreSQL fixtures. The current backend live suite explicitly selects Gemini and reads its ignored local settings; configuring OpenAI alone will not satisfy that suite. Default runs skip these network/quota-dependent cases. Run test processes sequentially against the shared test database. Provider overload/timeouts can fail a live run independently of offline correctness.
 
 ## CI
 

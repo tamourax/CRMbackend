@@ -18,7 +18,9 @@ Separate repositories meet delivery requirements. Controllers coordinate request
 
 The AI service boundaries are explicit: `AiAssistant` coordinates the workflow; `DealToolCatalog` defines and validates tools; `DealToolExecutor` revalidates and executes them for an authenticated user; `AiContextBuilder` prepares customer/report contexts; and `GroundedResponseFormatter` verifies model output before inserting server facts. Providers own only external transport. See [the refactor record](REFACTOR.md) for the before/after mapping and compatibility guarantees.
 
-Sanctum uses session cookies and CSRF. React never stores bearer tokens in localStorage. Login regenerates the session ID. Logout invalidates the session, rotates CSRF, cancels queries, and removes private frontend cache entries. CORS permits one configured origin with credentials. Production SPA/API hosts must share the same parent domain or use a same-origin proxy.
+Sanctum uses encrypted HttpOnly session cookies and CSRF. `SessionService` owns creation, validation, renewal, revocation and invalidation; `EnforceActiveSession` checks the current verifier and absolute lifetime on stateful requests. Login replaces the user's stored verifier and removes prior database sessions. Renewal rotates the ID and verifier without extending the 480-minute absolute limit. Idle expiry defaults to 30 minutes. React checks session validity on focus/foreground interval and removes private cached data after `401` or logout. No browser-stored bearer tokens are issued. CORS permits one configured origin with credentials. Production SPA/API hosts must share a same-site arrangement or use a same-origin proxy.
+
+Customer, deal and report HTTP actions live in `CustomerController`, `DealController` and `SalesReportController`. `HasTranslations` supplies the same canonical fallback across User/Customer/Deal; response Resources select display data without changing stable IDs, amounts or enum codes. See [API localization](API.md#localized-data) and [security controls](SECURITY.md).
 
 ## ERD
 
@@ -31,6 +33,7 @@ erDiagram
         varchar name
         varchar email UK
         varchar password
+        varchar auth_session_hash "nullable; hidden"
         jsonb translations
     }
     CUSTOMERS {

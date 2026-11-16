@@ -1,137 +1,115 @@
-<h1 align="center">7B AHMED TAMER · Backend API</h1>
+# 7B AHMED TAMER — CRM Backend
 
-<p align="center">A small CRM with explicit ownership, exact sales calculations, and grounded AI assistance.</p>
+A Laravel API for an Egyptian sales CRM with EGP reporting, Arabic/English records, and an AI assistant grounded in authorized database data.
 
-<p align="center">
-  <img alt="Laravel 13" src="https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white" />
-  <img alt="PHP 8.5" src="https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white" />
-  <img alt="PostgreSQL 17" src="https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white" />
-</p>
+[React frontend](https://github.com/tamourax/CRMfrontend) · [Full setup](docs/SETUP.md) · [Architecture & ERD](docs/ARCHITECTURE.md) · [API](docs/API.md) · [شرح بالعربي](docs/REVIEW_GUIDE_AR.md)
 
-<p align="center"><a href="https://github.com/tamourax/CRMfrontend">React frontend</a> · <a href="docs/API.md">API reference</a> · <a href="docs/ARCHITECTURE.md">Architecture & ERD</a> · <a href="docs/REFACTOR.md">Refactor notes</a></p>
+## What is the project?
 
-## Contents
+| Assessment story | Implemented journey |
+| --- | --- |
+| Customer management | Search/filter customers; open contact/company details, notes, and associated deals |
+| Deal management | Filter/sort opportunities; inspect project overview, value, stage, expected close, and customer |
+| Customer AI summary | Summarize the authorized profile, notes, relationship, deals, opportunities, and risks |
+| Deal assistant | Ask independent questions; Laravel validates and executes bounded queries before AI writes an answer |
+| Sales report summary | Display database-calculated statistics and generate a narrative from those same facts |
 
-- [Quick start](#quick-start)
-- [Demo accounts](#demo-accounts)
-- [Architecture](#architecture)
-- [Database relationships](#database-relationships)
-- [Project structure](#project-structure)
-- [AI provider configuration](#ai-provider-configuration)
-- [Tests and commands](#tests-and-commands)
-- [Refactor and branches](#refactor-and-branches)
-- [Documentation](#documentation)
+Stages are Lead, Qualified, Proposal, Negotiation, Won, and Lost. Pipeline includes the first four. Currency is **EGP**; calendar calculations use **Africa/Cairo**. Seeded customer/deal data supports Arabic/English; the React app provides RTL, light/dark mode, and responsive pages.
+
+The core CRM works without an AI key. AI requests then show an explicit unavailable error. Test doubles are confined to tests; the running application has no fake API or simulated AI fallback.
+
+## Versions
+
+| Component | Repository version / requirement |
+| --- | --- |
+| PHP | Tested **8.5.12**; Composer requires `^8.5` |
+| Laravel | **13.42.0**, locked |
+| Sanctum | **4.4.0**, locked |
+| PHPUnit | **12.5.44**, locked |
+| PostgreSQL | **17**, used by CI and documented local setup |
+| Composer | **2.x** |
+| Node.js | **24.x**, for the separate frontend |
+
+Use `composer install` to reproduce `composer.lock`. The backend has no independently declared application release number; its Git commit identifies the revision. The frontend package declares `1.0.0`. These are repository versions, not claims about the latest upstream releases.
 
 ## Quick start
 
-### 1. Requirements
-
-| Dependency | Tested version / configuration |
-|---|---|
-| PHP | 8.5.12, with `pdo_pgsql`, `pdo`, `mbstring`, `openssl`, `curl`, `fileinfo`, `xml`, `ctype`, `tokenizer`, `dom` |
-| Composer | 2 |
-| PostgreSQL | 17 |
-| Node.js | Only needed for the separate React frontend |
-
-Check PHP with `php -v`, `php --ini`, and `php -m`. On Windows, enable `extension=pdo_pgsql` in the loaded PHP configuration and restart PHP if necessary.
-
-### 2. Install and prepare PostgreSQL
-
 ```sh
 git clone https://github.com/tamourax/CRMbackend.git backend
+git clone https://github.com/tamourax/CRMfrontend.git frontend
 cd backend
+php -v
 composer install
-php scripts/setup-local.php
+```
+
+Check that `php -v` selects PHP 8.5. Choose **one** database/environment path in [the setup guide](docs/SETUP.md):
+
+- **Manual:** create PostgreSQL databases, copy `.env.example` to `.env`, set your `DB_*` credentials, then run `php artisan key:generate`.
+- **Optional local helper:** `php scripts/setup-local.php` creates application/test databases and ignored environment files. It needs PostgreSQL administrator access and defaults to port **5433**; override with `PGPORT` for installations using **5432**. It rewrites local environment files, so use it for initial local setup.
+
+After database/environment setup:
+
+```sh
 php artisan migrate --seed
-```
-
-The local helper creates a restricted application login, the `orbit_crm` and disposable `orbit_crm_test` databases, an application key, and ignored `.env` / `.env.testing` files. Existing local provider settings are preserved. It never changes PostgreSQL authentication rules or grants the application superuser privileges.
-
-**Default helper connection:** `127.0.0.1:5433`, administrator `postgres`, matching the assessment workstation. PostgreSQL installations using port `5432` need an override:
-
-```sh
-# Linux / macOS
-PGPORT=5432 php scripts/setup-local.php
-```
-
-```powershell
-# Windows PowerShell
-$env:PGPORT = '5432'
-php scripts/setup-local.php
-```
-
-Other optional administrator connection variables are `PGHOST`, `PGUSER`, and `PGPASSWORD`. Supply them locally if your PostgreSQL installation requires a password; never put it in source code.
-
-<details>
-<summary><strong>Manual database/environment setup</strong></summary>
-
-Create application-owned PostgreSQL databases for development and tests. Copy `.env.example` to `.env`, configure `DB_*`, run `php artisan key:generate`, then `php artisan migrate --seed`. Create a separate `.env.testing` with a disposable database name ending in `_test`.
-
-The example environment uses conventional port `5432`. Do not point tests at development or production data: test migrations reset their configured database. The test base class verifies PostgreSQL and the `_test` suffix before migration.
-
-</details>
-
-### 3. Start the API and frontend
-
-```sh
 php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-API: **[http://localhost:8000](http://localhost:8000)** · Health: **[http://localhost:8000/up](http://localhost:8000/up)**
+In another terminal:
 
-In another terminal, follow the [frontend quick start](https://github.com/tamourax/CRMfrontend#quick-start) and open **[http://localhost:5173](http://localhost:5173)**. Clone the frontend as a sibling directory named `frontend` when using its Playwright configuration.
+```sh
+cd frontend
+npm ci
+npm run dev
+```
 
-Use **localhost** consistently in both browser URLs. Mixing it with `127.0.0.1` prevents the SPA from sharing session/CSRF cookies correctly.
+Open **[http://localhost:5173](http://localhost:5173)**. API: [http://localhost:8000](http://localhost:8000); health: [http://localhost:8000/up](http://localhost:8000/up).
+
+Use `localhost` consistently in browser/API URLs. Match `FRONTEND_URL` and `SANCTUM_STATEFUL_DOMAINS` to the frontend origin. Keep the two repositories as siblings for Playwright. Retain the existing `APP_KEY` on subsequent starts. [Windows PHP, complete commands, environment reference, and troubleshooting](docs/SETUP.md).
 
 ## Demo accounts
 
-| Workspace | Username / email | Demo password |
-|---|---|---|
+Run the seeder first. Credentials and records are intentionally public and fictional.
+
+| Workspace | Email | Password |
+| --- | --- | --- |
 | Ahmed Tamer | `ahmed@7bahmedtamer.example` | `OrbitDemo!2026` |
 | Nour Hassan | `nour@7bahmedtamer.example` | `OrbitDemo!2026` |
 
-These are public, fictional seed credentials, not production credentials. Each account owns **10 Egyptian customer records and 30 deals**, with Cairo, Giza, Alexandria, Hurghada, Ismailia, and 6th of October City locations. Phone numbers use Egypt's `+20` country code and customer emails use reserved `.example` domains. Monetary values are Egyptian pounds (EGP). Customer, deal, and demo user text has English and Arabic variants; the API selects a language from the request's `Accept-Language` header and falls back to the canonical English text. The seed covers all six stages, customers without deals, missing notes/loss reasons, and past/current/future closing dates. It is idempotent and restricted to local/testing environments. Re-seeding refreshes dates relative to the current Cairo calendar.
+Each account owns **10 customers and 30 deals** with Egyptian contacts/cities, `+20` phones, reserved `.example` emails, missing-data examples, and all six stages. Re-seeding refreshes expected dates and resets demo passwords. Seeding is restricted to local/testing environments.
+
+Use Ahmed and Nour in separate browser profiles to demonstrate ownership. A new login to the **same account** revokes previous devices. Follow the [application journey](https://github.com/tamourax/CRMfrontend/blob/main/docs/USER_GUIDE.md) or [technical demo script](docs/DEMO.md).
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    UI[React SPA] -->|JSON + cookies + CSRF| HTTP[Routes / Form Requests / Controllers]
-    HTTP --> AUTH[Ownership scopes and Policies]
-    AUTH --> CRM[CRM queries and reporting]
-    CRM --> DB[(PostgreSQL)]
-    AUTH --> AI[AI orchestrator]
-    AI --> TOOLS[Tool catalog and executor]
+    UI["React SPA"] -->|"JSON, cookie, CSRF"| HTTP["Controllers and validation"]
+    HTTP --> AUTH["Ownership scopes and Policies"]
+    AUTH --> CRM["CRM queries and reporting"]
+    CRM --> DB[("PostgreSQL")]
+    AUTH --> AI["AI orchestrator"]
+    AI --> TOOLS["Validated read-only tools"]
     TOOLS --> CRM
-    AI --> PROVIDER[Gemini / OpenAI adapter]
-    PROVIDER --> VERIFY[Grounded response formatter]
+    AI --> PROVIDER["Gemini or OpenAI"]
+    PROVIDER --> VERIFY["Source and fact verification"]
 ```
 
-The backend is a **single Laravel application with service boundaries**, using constructor injection. Controllers handle HTTP coordination, Form Requests validate input, Eloquent relationships/scopes and Policies enforce ownership, and services own queries, calculations, and AI workflows.
+React owns presentation and remote-state caching. Laravel owns validation, authentication, authorization, calculations, and provider calls. PostgreSQL is the source of truth. A single Laravel application with constructor-injected services keeps these boundaries explicit without a generic repository layer.
 
-| Component | Responsibility |
-|---|---|
-| `CustomerController`, `DealController`, `SalesReportController` | Separate customer, deal, and reporting HTTP actions; public routes remain the same |
-| `SessionService` | Start, validate, rotate, revoke, and invalidate authenticated sessions |
-| `HasTranslations` | Shared model translation lookup with the original canonical fallback |
-| `CrmQueryService` | Authenticated customer/deal queries, filtering, sorting |
-| `SalesReportService` | Exact database totals, stage statistics, customer rankings |
-| `AiAssistant` | Coordinate customer summary, deal questions, and report summary |
-| `DealToolCatalog` | Tool definitions, allowed arguments, limits, date validation |
-| `DealToolExecutor` | Validate a selected tool and execute scoped queries |
-| `AiContextBuilder` | Minimize provider context and preserve authoritative render values |
-| `GroundedResponseFormatter` | Validate model output, sources, and numeric placeholders |
-| `AiProviderInterface` | Replaceable Gemini/OpenAI transport boundary |
+| Code boundary | Responsibility |
+| --- | --- |
+| `CustomerController`, `DealController`, `SalesReportController` | Separate domain HTTP actions and resource responses |
+| Form Requests, Policies, ownership scopes | Input validation and record authorization |
+| `SessionService`, `EnforceActiveSession` | Single-device sessions, expiry, rotation and revocation |
+| `CrmQueryService`, `SalesReportService` | Scoped filters, exact aggregates and rankings |
+| `HasTranslations` | Shared display-field lookup and canonical fallback |
+| `AiAssistant` | Coordinate customer, deal-question, and report workflows |
+| `DealToolCatalog`, `DealToolExecutor` | Allowlist, validate, and execute bounded read-only tools |
+| `AiContextBuilder` | Minimize provider context; prepare authoritative facts |
+| `GroundedResponseFormatter` | Validate sources/placeholders; insert server values |
+| `AiProviderInterface` | Interchangeable Gemini/OpenAI transport |
 
-The model has no database connection, arbitrary SQL tool, write capability, or ownership override. Laravel calculates every statistic. AI prose uses server-filled fact placeholders and authorized source references; recommendations still need human review.
-
-Authentication uses **Laravel Sanctum HttpOnly session cookies**. A new successful login revokes previous devices using a server-side SHA-256 session verifier and removes their database sessions. Old or missing verifiers are rejected on the next request. Passwords are hashed by Laravel; session payloads are encrypted with `APP_KEY` and cookie values are encrypted and authenticated. Keep `APP_KEY` stable and outside source control.
-
-`POST /session/refresh` requires an authenticated session and CSRF protection and rotates the session ID. It does not extend the absolute login lifetime (`SESSION_ABSOLUTE_LIFETIME`, default 480 minutes). The idle lifetime defaults to 30 minutes; an active frontend checks session validity every minute. Set `SESSION_LIFETIME=30` in existing local environments to adopt that idle limit. This browser SPA does not issue access/refresh bearer tokens: browser-readable secure-storage libraries cannot protect them against XSS. The session cookie is HttpOnly; the separate readable `XSRF-TOKEN` is only for CSRF verification.
-
-Login limits apply independently per account and per IP. API responses use `no-store`, `nosniff`, frame denial, a restrictive CSP, and a referrer policy. Production forces HttpOnly/Secure cookies and disables debug output. Every list, detail, report, and AI query is scoped to the authenticated user. Foreign record IDs return `404`.
-
-After upgrading, run `php artisan migrate` and sign in again; pre-upgrade authenticated sessions are revoked. Serve frontend and API over HTTPS in production, configure exact CORS/stateful origins, and apply equivalent security headers at the frontend web server. HSTS is emitted for HTTPS API requests. Database disk encryption, database TLS, backups, and secret storage must be configured on the deployment infrastructure; application session encryption does not encrypt all CRM columns.
+AI has no direct database connection, arbitrary SQL, or write capability. Source allowlists and server-filled numeric placeholders constrain answers; qualitative recommendations still need review. [Architecture, AI flow and metric definitions](docs/ARCHITECTURE.md).
 
 ## Database relationships
 
@@ -141,124 +119,99 @@ erDiagram
     CUSTOMERS ||--o{ DEALS : has
 ```
 
-- `customers.user_id` references `users.id`; `deals.customer_id` references `customers.id`.
-- Deal ownership is inherited from its customer, avoiding duplicate owner fields.
-- Foreign keys restrict deletion; check constraints enforce supported stages/statuses and nonnegative values.
-- Values use PostgreSQL `NUMERIC(14,2)` and decimal strings in JSON. Currency is EGP.
-- Open pipeline includes **Lead, Qualified, Proposal, Negotiation**; Won and Lost are separate.
-- Expected dates use the **Africa/Cairo** calendar. A current snapshot cannot establish historical growth or realized revenue.
-
-See the [full ERD and metric definitions](docs/ARCHITECTURE.md).
+`customers.user_id` references `users.id`; `deals.customer_id` references `customers.id`. Deal ownership follows its customer. Constraints enforce valid relationships, supported statuses/stages, and nonnegative `NUMERIC(14,2)` money. Responses use decimal strings. Nullable `JSONB` translations hold Arabic display fields. [Full ERD](docs/ARCHITECTURE.md#erd).
 
 ## Project structure
 
 ```text
 app/
-├── Http/
-│   ├── Controllers/           # HTTP orchestration
-│   ├── Requests/              # Input validation
-│   └── Resources/             # API representations
-├── Models/                    # Eloquent entities and ownership scopes
-├── Policies/                  # Record authorization
-├── Providers/                 # Dependency binding and rate limits
-└── Services/
-    ├── CrmQueryService.php
-    ├── SalesReportService.php
-    └── Ai/                    # Orchestration, tools, context, providers, verification
-database/
-├── migrations/                # PostgreSQL schema and constraints
-├── factories/                 # Controlled test data
-└── seeders/                   # Fictional demo dataset
-routes/                       # Session and REST endpoints
-config/                       # Database, session, CORS, AI configuration
-tests/                        # API, service, provider, and opt-in live tests
-scripts/setup-local.php       # Local-only database/environment helper
-docs/                         # Technical guides and refactor record
+  Http/
+    Controllers/     Auth, Customer, Deal, SalesReport, AI actions
+    Requests/        Login, filters and assistant validation
+    Resources/       Customer and deal JSON
+    Middleware/      Locale, active-session checks, security headers
+  Models/            User, Customer, Deal, ownership relationships
+    Concerns/        HasTranslations
+  Policies/          Customer/deal authorization
+  Providers/         Dependency binding and rate limits
+  Services/
+    CrmQueryService.php
+    SalesReportService.php
+    SessionService.php
+    Ai/              Orchestration, tools, context, providers, verification
+config/              Database, session, CORS and AI configuration
+database/            Migrations, seeders and test factories
+lang/ar/, lang/en/   Backend messages and stage/status labels
+routes/              REST and session endpoints
+tests/               API, service, security and provider tests
+scripts/             Optional local environment/database helper
+docs/                Setup, architecture, API, security and review guides
 ```
 
 ## AI provider configuration
 
-Set one provider in the **backend** `.env`:
+Edit **backend `.env` only**. Choose one provider and fill its key:
 
 ```dotenv
-# Gemini
-AI_PROVIDER=gemini
-GEMINI_API_KEY=
-GEMINI_MODEL=gemini-3.5-flash-lite
-```
-
-```dotenv
-# Or OpenAI
+# Option A
 AI_PROVIDER=openai
-OPENAI_API_KEY=
+OPENAI_API_KEY=replace-with-your-private-openai-key
 OPENAI_MODEL=gpt-5.4-mini
 ```
 
-Then run `php artisan config:clear` and restart the backend server. Refresh the frontend to reload its configuration status. A developer's local key is never included in a repository checkout. Missing keys and provider errors return an honest `503`; fakes are test-only.
+```dotenv
+# Option B
+AI_PROVIDER=gemini
+GEMINI_API_KEY=replace-with-your-private-gemini-key
+GEMINI_MODEL=gemini-3.5-flash-lite
+```
 
-Gemini allows one retry for received HTTP `500/502/503/504`, within a shared 55-second question budget and 25-second per-attempt limit. Authentication, quota, and network-timeout failures are not automatically retried. OpenAI requests use `store=false`; Gemini calls are stateless. Review the chosen provider's retention/privacy settings before sending real customer data.
+Model identifiers above match repository defaults. Use a model your provider account supports and ensure it has quota. The unselected key can stay empty. Never commit keys or put them in frontend `VITE_*` variables.
 
-If local PHP lacks trusted CA configuration, set `AI_CA_BUNDLE` to an existing trusted PEM file. TLS verification remains enabled. Leave it blank on correctly configured systems; never disable verification to make a request succeed.
+Run `php artisan config:clear`, restart the API, then reload the browser. `/api/status` checks key presence, not provider connectivity or quota. Generate a summary to exercise a live request. Missing configuration, rate/quota limits, timeouts, and unverifiable output return visible errors.
 
-### Environment reference
+`AI_CA_BUNDLE` optionally points to a trusted PEM file when local PHP needs explicit TLS trust configuration. Keep certificate verification enabled. [Full environment reference](docs/SETUP.md#environment-reference).
 
-| Variables | Purpose |
-|---|---|
-| `APP_KEY`, `APP_ENV`, `APP_DEBUG`, `APP_URL` | Encryption, environment, safe errors, backend URL |
-| `FRONTEND_URL`, `SANCTUM_STATEFUL_DOMAINS` | Exact first-party frontend origin and port |
-| `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | PostgreSQL connection |
-| `SESSION_DRIVER`, `SESSION_ENCRYPT`, `SESSION_DOMAIN`, `SESSION_SECURE_COOKIE`, `SESSION_SAME_SITE` | Session storage and cookies |
-| `CACHE_STORE` | Database locally; array during tests |
-| `AI_PROVIDER`, `OPENAI_API_KEY`, `OPENAI_MODEL` | OpenAI configuration |
-| `GEMINI_API_KEY`, `GEMINI_MODEL`, `AI_CA_BUNDLE` | Gemini and optional CA configuration |
+## Security and deployment
 
-Only `.env.example` is tracked. Never commit actual keys, passwords, `.env.testing`, or sessions.
+Sanctum uses encrypted HttpOnly session cookies and CSRF. New logins revoke earlier devices; renewal rotates both ID and verifier without extending the eight-hour absolute limit. Idle expiry defaults to 30 minutes. No access/refresh bearer tokens are stored in browser JavaScript storage. The UI clears private cache on `401`.
+
+All CRM/report/AI queries are owner-scoped; foreign record IDs return `404`. Login is limited independently per account and IP; AI routes share a per-user limit. Production forces Secure/HttpOnly cookies and disables debug. Passwords are hashed; session payloads are encrypted. AI keys stay on the backend, and contact data is minimized before external calls.
+
+Production still needs HTTPS, frontend-host security headers, database TLS/disk encryption, private networking, backups, secret storage, and removal of demo accounts. Session encryption does not encrypt every CRM column. [Security details and historical credential-handling record](docs/SECURITY.md).
 
 ## Tests and commands
 
 | Command | Purpose |
-|---|---|
-| `php artisan serve --host=127.0.0.1 --port=8000` | Start the API |
-| `php artisan migrate --seed` | Create schema and demo data |
-| `php artisan test --compact` | 49 offline tests; 4 live tests skipped by default |
+| --- | --- |
+| `composer install` | Install locked dependencies |
+| `php artisan migrate --seed` | Local schema and demo records |
+| `php artisan serve --host=127.0.0.1 --port=8000` | Run local API |
+| `php artisan route:list --path=api --except-vendor` | Inspect API |
+| `php artisan test --compact` | Offline suite; live tests skipped by default |
 | `php vendor/bin/pint --format agent` | Format PHP |
-| `composer validate --strict` | Validate the dependency manifest |
-| `composer audit` | Dependency audit |
+| `composer validate --strict` | Manifest/lock consistency |
+| `composer check-platform-reqs` | Active PHP/extensions |
+| `composer audit` | Dependency advisories |
 
-Tests use **PostgreSQL**, not SQLite. They cover authentication, CORS, ownership/IDOR, customer/deal relationships, exact cents, calendar boundaries, filters, database constraints, AI tools, source/fact verification, provider errors, and extracted service boundaries.
+Last local verification: **49 backend tests / 241 assertions**, **16 frontend integration tests**, **2 desktop/mobile browser tests**, and a successful frontend build. Four live-provider tests were skipped. Tests require an isolated PostgreSQL database ending in `_test`. [Test environment and live evaluation](docs/TESTING.md).
 
-Opt-in live evaluation uses synthetic test fixtures and consumes provider quota:
+## Delivery and review
 
-```sh
-# Linux / macOS
-RUN_LIVE_AI=1 php artisan test --compact tests/Feature/LiveAiTest.php
-```
+Both repositories contain complete source, lockfiles, environment templates, and separate CI workflows. Earlier screenshots/recording are available in the frontend repository; the current seeded app is the authoritative demo. CRUD editing, registration, admin roles, persisted chats, historical analytics, streaming, and hosted production deployment are outside this assessment scope.
 
-In PowerShell, set `$env:RUN_LIVE_AI='1'`, run the test command, then `Remove-Item Env:RUN_LIVE_AI`. Run test processes sequentially against the shared test database. External model availability can fail a live run independently of offline correctness. [Testing details](docs/TESTING.md).
+Feature/refactor/documentation branches are retained, including `refactor/shared-services` and frontend `refactor/shared-ui-and-styles`. History contains fast-forward integration and earlier merge commits. Inspect with `git log --graph --oneline --decorate --all`.
 
-## Refactor and branches
+## Documentation map
 
-The refactor separated tool definition/validation, query execution, context construction, and response verification from the original mixed AI service. The public HTTP contract, ownership rules, calculations, provider interface, and seeded data were preserved. [Before/after decisions and verification](docs/REFACTOR.md).
-
-| Branch | Responsibility |
-|---|---|
-| [`refactor/ai-service-boundaries`](https://github.com/tamourax/CRMbackend/tree/refactor/ai-service-boundaries) | AI service extraction and direct boundary regression tests |
-| [`docs/architecture-readme`](https://github.com/tamourax/CRMbackend/tree/docs/architecture-readme) | Setup, architecture, structure, and refactor documentation |
-| `main` | Integrated API, using explicit merge commits |
-
-Branches are retained on GitHub. View the actual graph with `git log --graph --oneline --decorate --all`.
-
-## Documentation
-
-| Guide | Contents |
-|---|---|
-| [Architecture & ERD](docs/ARCHITECTURE.md) | Data flow, relationships, metrics, design choices |
-| [API reference](docs/API.md) | Endpoints, filters, payloads, errors |
-| [Refactor record](docs/REFACTOR.md) | Responsibilities, compatibility, branch workflow |
-| [Testing](docs/TESTING.md) | Automated layers, fixtures, live acceptance |
-| [Demo](docs/DEMO.md) | Walkthrough and assessment questions |
-| [AI-assisted development](docs/AI_USAGE.md) | Generation, review, candidate ownership checklist |
-| [Arabic discussion guide](docs/REVIEW_GUIDE_AR.md) | شرح القرارات للمناقشة الفنية |
-| [Security notes](docs/SECURITY.md) | Privacy boundaries and retired historical local credentials |
-
-Production needs HTTPS, secure cookies, private PostgreSQL networking, individual credentials, backups, and removal of demo accounts. CRUD writes, admin roles, stored conversations, historical analytics, streaming, and hosted deployment are outside this assessment version.
+| Guide | Read it for |
+| --- | --- |
+| [Setup & environment](docs/SETUP.md) | First install, Windows, manual/helper DB setup, all variables, troubleshooting |
+| [Architecture & ERD](docs/ARCHITECTURE.md) | Design choices, data relationships, AI flow and metrics |
+| [API reference](docs/API.md) | Endpoints, localization, filters, payloads and errors |
+| [Security](docs/SECURITY.md) | Authentication, privacy and deployment boundaries |
+| [Testing](docs/TESTING.md) | Isolated test database, commands and live checks |
+| [Demo](docs/DEMO.md) | Story walkthrough and reviewer talking points |
+| [Arabic discussion guide](docs/REVIEW_GUIDE_AR.md) | شرح المعمارية والقرارات أثناء المناقشة |
+| [Refactor](docs/REFACTOR.md) | Shared components/services and compatibility |
+| [AI-assisted development](docs/AI_USAGE.md) | Generation requests, review and candidate ownership |
