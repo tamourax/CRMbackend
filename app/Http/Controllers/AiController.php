@@ -8,7 +8,6 @@ use App\Services\Ai\AiProviderInterface;
 use App\Services\CrmQueryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class AiController extends Controller
 {
@@ -19,8 +18,7 @@ class AiController extends Controller
 
     public function customer(Request $request, string $id, CrmQueryService $queries, AiAssistant $assistant): JsonResponse
     {
-        $customer = $queries->customers($request->user())->findOrFail($id);
-        Gate::authorize('view', $customer);
+        $customer = $queries->findCustomer($request->user(), $id);
 
         return response()->json(['data' => $assistant->customer($customer)]);
     }

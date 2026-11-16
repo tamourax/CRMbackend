@@ -7,7 +7,6 @@ use App\Http\Resources\DealResource;
 use App\Services\CrmQueryService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Gate;
 
 class DealController extends Controller
 {
@@ -26,8 +25,7 @@ class DealController extends Controller
 
     public function show(Request $request, string $id): DealResource
     {
-        $deal = $this->queries->deals($request->user())->with('customer')->findOrFail($id);
-        Gate::authorize('view', $deal);
+        $deal = $this->queries->findDeal($request->user(), $id, ['customer']);
 
         return new DealResource($deal);
     }

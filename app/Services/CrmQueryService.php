@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Deal;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Gate;
 
 class CrmQueryService
 {
@@ -67,6 +68,22 @@ class CrmQueryService
             'newest' => $query->orderByDesc('created_at')->orderByDesc('id'),
             default => $query->orderByDesc('value')->orderBy('id'),
         };
+    }
+
+    public function findCustomer(User $user, string $id, array $relations = []): Customer
+    {
+        $customer = $this->customers($user)->with($relations)->findOrFail($id);
+        Gate::authorize('view', $customer);
+
+        return $customer;
+    }
+
+    public function findDeal(User $user, string $id, array $relations = []): Deal
+    {
+        $deal = $this->deals($user)->with($relations)->findOrFail($id);
+        Gate::authorize('view', $deal);
+
+        return $deal;
     }
 
     public static function decimal(string|int $value): string

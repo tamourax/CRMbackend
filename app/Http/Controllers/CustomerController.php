@@ -7,7 +7,6 @@ use App\Http\Resources\CustomerResource;
 use App\Services\CrmQueryService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Gate;
 
 class CustomerController extends Controller
 {
@@ -27,10 +26,7 @@ class CustomerController extends Controller
 
     public function show(Request $request, string $id): CustomerResource
     {
-        $customer = $this->queries->customers($request->user())
-            ->with(['deals' => fn ($query) => $query->orderByDesc('value')])
-            ->findOrFail($id);
-        Gate::authorize('view', $customer);
+        $customer = $this->queries->findCustomer($request->user(), $id, ['deals' => fn ($query) => $query->orderByDesc('value')]);
 
         return new CustomerResource($customer);
     }
