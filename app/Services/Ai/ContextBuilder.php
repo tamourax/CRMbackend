@@ -58,6 +58,31 @@ class ContextBuilder
         ];
     }
 
+    public function salesReport(array $report): array
+    {
+        $facts = array_filter($report, fn ($value) => is_scalar($value));
+        $render = $facts;
+        foreach ($report['stages'] as $stage) {
+            $render[$stage['stage'].'_count'] = $stage['count'];
+            $render[$stage['stage'].'_value'] = $stage['value'];
+        }
+        $customers = [];
+        $sources = ['sales_report' => ['type' => 'aggregate', 'label' => 'Sales report · all your deals']];
+        foreach ($report['top_customers'] as $customer) {
+            $key = 'customer_'.$customer['id'];
+            $customers[] = ['source_key' => $key, 'company' => $this->clean($customer['company'], [$customer['name']]), 'deal_count' => $customer['deal_count'], 'total_value' => $customer['total_value']];
+            $sources[$key] = ['type' => 'customer', 'id' => $customer['id'], 'label' => $customer['company']];
+            $render[$key.'_value'] = $customer['total_value'];
+            $render[$key.'_count'] = $customer['deal_count'];
+            $render[$key.'_company'] = $customer['company'];
+        }
+
+        return [
+            'facts' => $facts, 'render_values' => $render, 'stages' => $report['stages'], 'top_customers' => $customers,
+            'sources' => $sources, 'limitations' => ['No historical stage changes or actual closing dates are stored; growth trends and realized revenue cannot be determined.'],
+        ];
+    }
+
     public function publicContext(array $context): array
     {
         $public = $context;
